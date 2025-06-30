@@ -1,0 +1,44 @@
+from abc import abstractmethod, ABC
+from typing import List, Optional
+
+from backend.src.common.domain.entities import Snapshot, Particle
+from backend.src.common.domain.types.snapshot import SnapshotParams
+
+
+class SnapshotRepository(ABC):
+    @abstractmethod
+    async def filter_by_params(self, params: SnapshotParams) -> Optional[List[Snapshot]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_particles(self, _id, particles: List[Particle]) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def find_by_id(self, _id, fetch_links=False) -> Optional[Snapshot]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def find_particles(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def find_with_constants_id(self, _id, fetch_links=False) -> Optional[List[Snapshot]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def delete_with_constants_id(self, _id):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def persist(self, snapshot: Snapshot):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def persist_with_constants_id(
+            self,
+            constants_id: str,
+            snapshot: Snapshot,
+            fetch_links: bool = False,
+    ) -> Snapshot:
+        raise NotImplementedError

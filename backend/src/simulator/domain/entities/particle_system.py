@@ -4,8 +4,8 @@ from typing import Optional
 
 import torch
 
-from backend.src.domain.entities.properties import PhysicalProperties, SimulationProperties
-from backend.src.infrastructure.interaction import (
+from backend.src.common.domain.types.properties import PhysicalProperties, SimulationProperties
+from backend.src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
     PotencialWallInteractionDecorator,
     FrictionInteractionDecorator,
@@ -81,7 +81,7 @@ class ParticleSystem2D:
         # new_pos, vel_half = self.solid_circle_confinment(
         #     positions=new_pos,
         #     velocities=vel_half,
-        #     radio=self.sim_props.r_confin,
+        #     radio=self.sim_props.r_confinement,
         # )
 
         new_acc = interactions_plus_friction.compute_aceleration(
@@ -134,7 +134,7 @@ class ParticleSystem2D:
     #     return torch.norm(self.vel, dim=1).mean()
     #
     # def mean_acceleration(self):
-    #     mask = torch.norm(self.pos, dim=1) < self.r_confin if self.r_confin > 0 else torch.ones(self.n_particles,
+    #     mask = torch.norm(self.pos, dim=1) < self.r_confinement if self.r_confinement > 0 else torch.ones(self.n_particles,
     #                                                                                             device=device,
     #                                                                                             dtype=torch.bool)
     #     return torch.norm(self.acc[mask], dim=1).mean()

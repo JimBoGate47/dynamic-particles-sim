@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 import torch
 
-from backend.src.domain.interfaces import Interaction, InteractionDecorator
-from backend.src.domain.entities.properties import PhysicalProperties
+from backend.src.simulator.domain.interfaces import Interaction, InteractionDecorator
+from backend.src.common.domain.types.properties import PhysicalProperties
 
 SECURE_DIVISION_CONSTANT = 1e-9
 

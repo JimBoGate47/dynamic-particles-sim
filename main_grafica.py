@@ -1,8 +1,8 @@
 import pandas as pd
 import torch
 
-from backend.src.domain.entities.particle_system import ParticleSystem2D
-from backend.src.domain.entities.properties import SimulationProperties, PhysicalProperties
+from backend.src.simulator.domain.entities.particle_system import ParticleSystem2D
+from backend.src.common.domain.types.properties import SimulationProperties, PhysicalProperties
 from plotting.plot_particles2 import plot_data
 
 RADIO = 6.0
@@ -14,7 +14,10 @@ ps = ParticleSystem2D(
         device=device,
     ),
     sim_props=SimulationProperties(
-        r_confin=RADIO,
+        g=9.81,
+        k=9e9,
+        min_vel=1e3,
+        r_confinement=RADIO,
         beta=0.5,
         dt=0.1,
     ),

@@ -1,0 +1,17 @@
+from backend.src.common.domain.entities import Snapshot
+from backend.src.common.domain.models.constants import ConstantsORM
+from backend.src.common.domain.models.snapshot import SnapshotORM
+
+from backend.src.common.infrastructure.builders.constants import build_constants
+
+
+def build_snapshot(snapshot: SnapshotORM) -> Snapshot:
+    return Snapshot(
+        id=str(snapshot.id),
+        step=snapshot.step,
+        constants=(
+            build_constants(snapshot.constants)
+            if isinstance(snapshot.constants, ConstantsORM) else None
+        ),
+        particles=snapshot.particles,
+    )
