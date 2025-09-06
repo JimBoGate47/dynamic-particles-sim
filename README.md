@@ -31,9 +31,10 @@ uv sync
 source .venv/bin/activate
 ```
 
-5. Run the test script:
+5. Run the test scripts:
 ```bash
-python main_grafica.py
+python cli.py
+python cli_plot.py
 ```
 
 > ⚠️ **Note:** The simulation results may vary depending on the initial conditions of the particles.
