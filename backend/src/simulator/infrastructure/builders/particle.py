@@ -1,11 +1,12 @@
 from backend.src.common.domain.entities import Particle
+from backend.src.common.domain.entities.properties import PhysicalProps
 from backend.src.common.domain.types.properties import PhysicalProperties
 from backend.src.simulator.domain.entities.particle_system import ParticleSystem2D
 
 
 def build_particles(
         mx_particles: ParticleSystem2D,
-        phys_props: PhysicalProperties,
+        phys_props: PhysicalProps,
 
 ) -> list[Particle]:
     particles = []
@@ -23,7 +24,7 @@ def build_particles(
                 r=[r[0].item(), r[1].item()],
                 v=[v[0].item(), v[1].item()],
                 a=[a[0].item(), a[1].item()],
-                phys_props=phys_props.to_dict
+                phys_props=phys_props.model_dump()
             )
         )
     return particles

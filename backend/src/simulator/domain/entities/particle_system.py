@@ -4,6 +4,7 @@ from typing import Optional
 
 import torch
 
+from backend.src.common.domain.entities.properties import SimulationProps, PhysicalProps
 from backend.src.common.domain.types.properties import PhysicalProperties, SimulationProperties
 from backend.src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
@@ -42,8 +43,8 @@ interactions_plus_friction = FrictionInteractionDecorator(interactions)
 @dataclass
 class ParticleSystem2D:
     pos: torch.Tensor
-    phys_props: PhysicalProperties
-    sim_props: SimulationProperties
+    phys_props: PhysicalProps
+    sim_props: SimulationProps
     vel: Optional[torch.Tensor] = None
     acc: Optional[torch.Tensor] = None
     step: Optional[int] = 0
