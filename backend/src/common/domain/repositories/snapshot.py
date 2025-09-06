@@ -2,12 +2,12 @@ from abc import abstractmethod, ABC
 from typing import List, Optional
 
 from backend.src.common.domain.entities import Snapshot, Particle
-from backend.src.common.domain.types.snapshot import SnapshotParams
+from backend.src.common.domain.filters.snapshot import SnapshotsFilter
 
 
 class SnapshotRepository(ABC):
     @abstractmethod
-    async def filter_by_params(self, params: SnapshotParams) -> Optional[List[Snapshot]]:
+    async def filter(self, params: SnapshotsFilter) -> list[Snapshot]:
         raise NotImplementedError
 
     @abstractmethod

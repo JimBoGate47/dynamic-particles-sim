@@ -3,15 +3,14 @@ from typing import List, Optional
 from beanie import PydanticObjectId
 
 from backend.src.common.domain.entities import Snapshot, Particle
-from backend.src.common.domain.models.particle import ParticleORM
+from backend.src.common.domain.filters.snapshot import SnapshotsFilter
 from backend.src.common.domain.models.snapshot import SnapshotORM, ConstantsORM
 from backend.src.common.domain.repositories.snapshot import SnapshotRepository
-from backend.src.common.domain.types.snapshot import SnapshotParams
 from backend.src.common.infrastructure.builders.snapshot import build_snapshot
 
 
 class ORMSnapshotRepository(SnapshotRepository):
-    async def filter_by_params(self, params: SnapshotParams) -> Optional[List[Snapshot]]:
+    async def filter(self, params: SnapshotsFilter) -> list[Snapshot]:
         filters = {}
         if params.snapshot_id:
             filters["_id"] = params.snapshot_id
@@ -25,10 +24,7 @@ class ORMSnapshotRepository(SnapshotRepository):
 
         snapshots = await SnapshotORM.find(filters, fetch_links=True).to_list()
 
-        if snapshots:
-            return [build_snapshot(snapshot) for snapshot in snapshots]
-
-        return None
+        return [build_snapshot(snapshot) for snapshot in snapshots]
 
     async def update_particles(self, _id, particles: List[Particle]) -> bool:
         snapshot_orm = await SnapshotORM.get(_id)
