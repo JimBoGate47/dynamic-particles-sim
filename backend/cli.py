@@ -10,7 +10,7 @@ from backend.src.simulator.applitacion.use_cases.constants_builder import Consta
 from backend.src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 from backend.src.simulator.infrastructure.builders.particle_system import build_particles_2d
-from config.utils import connect, disconnect
+from config.database import db_connection
 
 
 async def main():
@@ -35,30 +35,28 @@ async def main():
             m=1.0,
         )
     )
-    await connect()
-    constants = await ConstantsBuilder(
-        name="nombre2",
-        g=ps.sim_props.g,
-        k=ps.sim_props.k,
-        dt=ps.sim_props.dt,
-        min_vel=ps.sim_props.min_vel,
-        orm_constants=ORMConstantsRepository(),
-    ).execute()
+    async with db_connection():
+        constants = await ConstantsBuilder(
+            name="nombre3",
+            g=ps.sim_props.g,
+            k=ps.sim_props.k,
+            dt=ps.sim_props.dt,
+            min_vel=ps.sim_props.min_vel,
+            orm_constants=ORMConstantsRepository(),
+        ).execute()
 
-    for _ in range(506):
-        particles_system: ParticleSystem2D = build_particles_2d(ps)
-        if ps.step in [100, 200, 300, 400, 500]:
-            snap = await SnapshotBuilder(
-                step=ps.step,
-                constants_id=constants.id_object,
-                particles=particles_system.particles,
-                orm_snapshot=ORMSnapshotRepository(),
-                orm_constants=ORMConstantsRepository(),
-            ).execute()
-            print(snap)
-        ps.velocity_verlet_step()
-
-    await disconnect()
+        for _ in range(506):
+            particles_system: ParticleSystem2D = build_particles_2d(ps)
+            if ps.step in [100, 200, 300, 400, 500]:
+                snap = await SnapshotBuilder(
+                    step=ps.step,
+                    constants_id=constants.id_object,
+                    particles=particles_system.particles,
+                    orm_snapshot=ORMSnapshotRepository(),
+                    orm_constants=ORMConstantsRepository(),
+                ).execute()
+                print(snap)
+            ps.velocity_verlet_step()
 
 
 asyncio.run(main())
