@@ -11,6 +11,7 @@ from backend.src.simulator.infrastructure.interaction import (
     PotencialWallInteractionDecorator,
     FrictionInteractionDecorator,
 )
+from backend.src.simulator.infrastructure.queries import GenericInteractionQuery
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -68,8 +69,12 @@ class ParticleSystem2DTensor:
 
     def velocity_verlet_step(self):
         acc = interactions.compute_aceleration(
-            positions=self.pos,
-            phys_props=self.phys_props,
+            query=GenericInteractionQuery(
+                positions=self.pos,
+                velocity=self.vel,
+                beta=self.sim_props.beta,
+                phys_props=self.phys_props,
+            ),
         )
         # print("POS0: ", self.pos)
         # print("VEL0: ", self.vel)
@@ -86,10 +91,12 @@ class ParticleSystem2DTensor:
         # )
 
         new_acc = interactions_plus_friction.compute_aceleration(
-            positions=new_pos,
-            beta=self.sim_props.beta,
-            velocity=vel_half,
-            phys_props=self.phys_props,
+            query=GenericInteractionQuery(
+                velocity=vel_half,
+                positions=new_pos,
+                beta=self.sim_props.beta,
+                phys_props=self.phys_props,
+            ),
         )
 
         new_vel = vel_half + 0.5 * new_acc * self.sim_props.dt

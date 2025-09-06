@@ -1,0 +1,2 @@
+class InteractionQuery:
+    pass
