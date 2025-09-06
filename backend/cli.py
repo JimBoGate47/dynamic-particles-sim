@@ -2,21 +2,22 @@ import asyncio
 
 import torch
 
+from backend.src.common.domain.entities.particle_system import ParticleSystem2D
 from backend.src.common.domain.entities.properties import PhysicalProps, SimulationProps
 from backend.src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from backend.src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from backend.src.simulator.applitacion.use_cases.constants_builder import ConstantsBuilder
 from backend.src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2D
-from backend.src.simulator.infrastructure.builders.particle import build_particles
+from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
+from backend.src.simulator.infrastructure.builders.particle_system import build_particles_2d
 from config.utils import connect, disconnect
 
 
 async def main():
     RADIO = 6.0
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    ps = ParticleSystem2D(
-        pos=ParticleSystem2D.initialize_particles_in_circle(
+    ps = ParticleSystem2DTensor(
+        pos=ParticleSystem2DTensor.initialize_particles_in_circle(
             n_particles=6,
             R=1,
             device=device,
@@ -43,16 +44,19 @@ async def main():
         min_vel=ps.sim_props.min_vel,
         orm_constants=ORMConstantsRepository(),
     ).execute()
-    particles = build_particles(ps, phys_props=ps.phys_props)
 
-    snap = await SnapshotBuilder(
-        step=0,
-        constants_id=constants.id_object,
-        particles=particles,
-        orm_snapshot=ORMSnapshotRepository(),
-        orm_constants=ORMConstantsRepository(),
-    ).execute()
-    print(snap)
+    for _ in range(506):
+        particles_system: ParticleSystem2D = build_particles_2d(ps)
+        if ps.step in [100, 200, 300, 400, 500]:
+            snap = await SnapshotBuilder(
+                step=ps.step,
+                constants_id=constants.id_object,
+                particles=particles_system.particles,
+                orm_snapshot=ORMSnapshotRepository(),
+                orm_constants=ORMConstantsRepository(),
+            ).execute()
+            print(snap)
+        ps.velocity_verlet_step()
 
     await disconnect()
 

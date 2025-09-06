@@ -41,7 +41,7 @@ interactions_plus_friction = FrictionInteractionDecorator(interactions)
 
 
 @dataclass
-class ParticleSystem2D:
+class ParticleSystem2DTensor:
     pos: torch.Tensor
     phys_props: PhysicalProps
     sim_props: SimulationProps
@@ -143,10 +143,10 @@ class ParticleSystem2D:
 
 if __name__ == "__main__":
     RADIO = 1.0
-    ps = ParticleSystem2D(
+    ps = ParticleSystem2DTensor(
         # pos=torch.tensor([[1., 2.], [3., 4.], [5., 6.]], device=device),  # torch.randn(3, 2, device=device),
         # pos=torch.randn(3, 2, device=device),
-        pos=ParticleSystem2D.initialize_particles_in_circle(
+        pos=ParticleSystem2DTensor.initialize_particles_in_circle(
             n_particles=3,
             R=RADIO,
             device=device,

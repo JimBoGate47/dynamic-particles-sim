@@ -1,16 +1,13 @@
 from backend.src.common.domain.entities import Particle
-from backend.src.common.domain.entities.properties import PhysicalProps
-from backend.src.common.domain.types.properties import PhysicalProperties
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2D
+from backend.src.common.domain.entities.particle_system import ParticleSystem2D
+from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 
 
-def build_particles(
-        mx_particles: ParticleSystem2D,
-        phys_props: PhysicalProps,
-
-) -> list[Particle]:
+def build_particles_2d(
+        particles_tensor: ParticleSystem2DTensor,
+) -> ParticleSystem2D:
     particles = []
-    for r, v, a in zip(mx_particles.pos, mx_particles.vel, mx_particles.acc):
+    for r, v, a in zip(particles_tensor.pos, particles_tensor.vel, particles_tensor.acc):
         # obj_particles.append(
         #     Particle2D(
         #         r=Position2D(x=r[0].item(), y=r[1].item()),
@@ -24,7 +21,9 @@ def build_particles(
                 r=[r[0].item(), r[1].item()],
                 v=[v[0].item(), v[1].item()],
                 a=[a[0].item(), a[1].item()],
-                phys_props=phys_props.model_dump()
+                phys_props=particles_tensor.phys_props.model_dump()
             )
         )
-    return particles
+    return ParticleSystem2D(
+        particles=particles,
+    )
