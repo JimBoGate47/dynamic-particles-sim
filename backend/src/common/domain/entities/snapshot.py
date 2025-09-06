@@ -1,13 +1,15 @@
 from typing import List, Optional
 
+from bson import ObjectId
 from pydantic import BaseModel
 
+from backend.src.common.domain.entities.base import CustomBaseModel
 from backend.src.common.domain.entities.particle import Particle
 from backend.src.common.domain.entities.constants import Constants
 
 
-class Snapshot(BaseModel):
-    id: Optional[str] = None
+class Snapshot(CustomBaseModel):
+    id: str | None = None
     step: int
     constants: Optional[Constants]
     particles: List[Particle]

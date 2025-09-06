@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from backend.src.common.domain.models.constants import ConstantsORM
 from backend.src.common.domain.entities import Constants
 from backend.src.common.infrastructure.builders.constants import build_constants
@@ -19,12 +21,11 @@ class ORMConstantsRepository(ConstantsRepository):
             for constant in constants
         ]
 
-    async def find_by_id(self, _id: str):
-        constants = await ConstantsORM.find_one(ConstantsORM.id == _id)
-        return [
-            build_constants(constant)
-            for constant in constants
-        ]
+    async def find_by_id(self, _id: ObjectId) -> Constants | None:
+        orm_instance = await ConstantsORM.find_one(ConstantsORM.id == _id)
+        if not orm_instance:
+            return None
+        return build_constants(orm_instance)
 
     async def persist(self, constant: Constants) -> Constants:
         constants = ConstantsORM(
@@ -36,12 +37,10 @@ class ORMConstantsRepository(ConstantsRepository):
             ruta=constant.ruta,
             dt=constant.dt,
             confinement=constant.confinement,
-            r_confinment=constant.r_confinement,
+            r_confinement=constant.r_confinement,
             version=constant.version,
             barra_height=constant.barra_height,
             barra_qlamb=constant.barra_qlamb,
         )
-        print("JIM")
-        print(constants)
         await constants.insert()
         return build_constants(constants)

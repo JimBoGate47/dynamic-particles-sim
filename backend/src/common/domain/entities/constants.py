@@ -1,10 +1,8 @@
-from typing import Optional
-
-from pydantic import BaseModel
+from backend.src.common.domain.entities.base import CustomBaseModel
 
 
-class Constants(BaseModel):
-    id: Optional[str] = None
+class Constants(CustomBaseModel):
+    id: str | None = None
     name: str
     g: float
     k: float

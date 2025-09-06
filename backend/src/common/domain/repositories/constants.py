@@ -1,6 +1,8 @@
 from abc import abstractmethod, ABC
 from typing import List
 
+from bson import ObjectId
+
 from src.common.domain.entities import Constants
 
 
@@ -14,7 +16,7 @@ class ConstantsRepository(ABC):
         raise NotImplementedError
 
     @classmethod
-    async def find_by_id(self, _id: str) -> Constants:
+    async def find_by_id(self, _id: ObjectId) -> Constants | None:
         raise NotImplementedError
 
     @abstractmethod

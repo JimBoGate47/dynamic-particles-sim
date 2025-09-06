@@ -47,7 +47,7 @@ async def main():
 
     snap = await SnapshotBuilder(
         step=0,
-        constants=constants,
+        constants_id=constants.id_object,
         particles=particles,
         orm_snapshot=ORMSnapshotRepository(),
         orm_constants=ORMConstantsRepository(),
