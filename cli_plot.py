@@ -14,10 +14,12 @@ async def main():
     async with db_connection():
         snapshots: list[Snapshot] = await SnapshotsLister(
             filters=SnapshotsFilter(
-                constants_name="nombre2",
+                constants_name="nombre3",
             ),
             snapshot_repository=ORMSnapshotRepository(),
         ).execute()
+        if not snapshots:
+            raise ValueError("No snapshots found")
         pprint(snapshots)
 
         snapshots_df = SnapshotsDataframePresenter(
