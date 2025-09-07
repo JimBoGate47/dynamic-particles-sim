@@ -6,12 +6,13 @@ import torch
 
 from backend.src.common.domain.entities.properties import SimulationProps, PhysicalProps
 from backend.src.common.domain.types.properties import PhysicalProperties, SimulationProperties
+from backend.src.simulator.domain.interfaces import Interaction
 from backend.src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
     PotencialWallInteractionDecorator,
     FrictionInteractionDecorator,
 )
-from backend.src.simulator.infrastructure.queries import GenericInteractionQuery
+from backend.src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -68,17 +69,18 @@ class ParticleSystem2DTensor:
         return pos
 
     def velocity_verlet_step(self):
-        acc = interactions.compute_aceleration(
+        response: GenericInteractionResponse = interactions.compute_aceleration(
             query=GenericInteractionQuery(
                 positions=self.pos,
                 velocity=self.vel,
-                beta=self.sim_props.beta,
+                sim_props=self.sim_props,
                 phys_props=self.phys_props,
             ),
         )
         # print("POS0: ", self.pos)
         # print("VEL0: ", self.vel)
         # print("ACC0: ", self.acc)
+        acc = response.acceleration
 
         vel_half = self.vel + 0.5 * acc * self.sim_props.dt
         new_pos = self.pos + vel_half * self.sim_props.dt
@@ -90,15 +92,15 @@ class ParticleSystem2DTensor:
         #     radio=self.sim_props.r_confinement,
         # )
 
-        new_acc = interactions_plus_friction.compute_aceleration(
+        new__response: GenericInteractionResponse = interactions_plus_friction.compute_aceleration(
             query=GenericInteractionQuery(
                 velocity=vel_half,
                 positions=new_pos,
-                beta=self.sim_props.beta,
+                sim_props=self.sim_props,
                 phys_props=self.phys_props,
             ),
         )
-
+        new_acc = new__response.acceleration
         new_vel = vel_half + 0.5 * new_acc * self.sim_props.dt
 
         self.pos = new_pos
