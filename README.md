@@ -1,6 +1,6 @@
 # Dynamic Confined Particles
 
-This repository contains the code to simulate the dynamics of confined particles.
+This repository contains code for simulating the dynamics of particles confined within a bounded space. The simulation models particle interactions, confinement effects, and dynamic behavior over time.
 
 ## Requirements
 
