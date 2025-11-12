@@ -17,5 +17,6 @@ class SimulationProps(BaseModel):
     k: float
     min_vel: float
     r_confinement: float
+    k_confinement: float
     beta: float
     dt: float

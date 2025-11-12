@@ -15,7 +15,7 @@ class PairElectrostaticInteraction(
     ]
 ):
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
-        r = query.positions.unsqueeze(1) - query.positions.unsqueeze(0)
+        r = query.positions.unsqueeze(1) - query.positions.unsqueeze(0) # [n, n, 2]
         dist = torch.norm(r, dim=2, keepdim=True) + SECURE_DIVISION_CONSTANT  # 1e-9 para que no haya division entre 0
         # print("DIST ", dist)
         ff = (1.0 / dist) ** 3
@@ -47,8 +47,10 @@ class PotencialWallInteractionDecorator(
         pos: Tensor([x, y])
         returns: Tensor([new_ax, new_ay])
         """
+        parabolic_acceleration = query.sim_props.k_confinement * query.positions
+        parabolic_acceleration /= query.phys_props.m
         return GenericInteractionResponse(
-            acceleration=interaction_response.acceleration - query.positions
+            acceleration=interaction_response.acceleration - parabolic_acceleration
         )
 
 

@@ -6,7 +6,6 @@ import torch
 
 from backend.src.common.domain.entities.properties import SimulationProps, PhysicalProps
 from backend.src.common.domain.types.properties import PhysicalProperties, SimulationProperties
-from backend.src.simulator.domain.interfaces import Interaction
 from backend.src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
     PotencialWallInteractionDecorator,
@@ -69,21 +68,18 @@ class ParticleSystem2DTensor:
         return pos
 
     def velocity_verlet_step(self):
+        new_pos = self.calculate_new_pos()
+        half_vel = self.calculate_half_vel()
+
         response: GenericInteractionResponse = interactions.compute_aceleration(
             query=GenericInteractionQuery(
-                positions=self.pos,
-                velocity=self.vel,
+                positions=new_pos,
+                velocity=half_vel,  # NOTE Opcion A: self.vel Opcion B: half_velocity (more accurate)
                 sim_props=self.sim_props,
                 phys_props=self.phys_props,
             ),
         )
-        # print("POS0: ", self.pos)
-        # print("VEL0: ", self.vel)
-        # print("ACC0: ", self.acc)
-        acc = response.acceleration
-
-        vel_half = self.vel + 0.5 * acc * self.sim_props.dt
-        new_pos = self.pos + vel_half * self.sim_props.dt
+        new_acc = response.acceleration
 
         # TODO mover a un class decorador?, ver PotencialWallInteractionDecorator
         # new_pos, vel_half = self.solid_circle_confinment(
@@ -92,16 +88,7 @@ class ParticleSystem2DTensor:
         #     radio=self.sim_props.r_confinement,
         # )
 
-        new__response: GenericInteractionResponse = interactions_plus_friction.compute_aceleration(
-            query=GenericInteractionQuery(
-                velocity=vel_half,
-                positions=new_pos,
-                sim_props=self.sim_props,
-                phys_props=self.phys_props,
-            ),
-        )
-        new_acc = new__response.acceleration
-        new_vel = vel_half + 0.5 * new_acc * self.sim_props.dt
+        new_vel = self.calculate_new_vel(half_vel=half_vel, new_acc=new_acc)
 
         self.pos = new_pos
         self.vel = new_vel
@@ -109,9 +96,14 @@ class ParticleSystem2DTensor:
 
         self.step += 1
 
-        # print("POS1: ", self.pos)
-        # print("VEL1: ", self.vel)
-        # print("ACC1: ", self.acc)
+    def calculate_new_pos(self) -> torch.Tensor:
+        return self.pos + self.vel * self.sim_props.dt + 0.5 * self.acc * (self.sim_props.dt ** 2)
+
+    def calculate_half_vel(self) -> torch.Tensor:
+        return self.vel + 0.5 * self.acc * self.sim_props.dt
+
+    def calculate_new_vel(self, half_vel, new_acc):
+        return half_vel + 0.5 * new_acc * self.sim_props.dt
 
     @classmethod
     def solid_circle_confinment(cls, positions, velocities, radio: float):
