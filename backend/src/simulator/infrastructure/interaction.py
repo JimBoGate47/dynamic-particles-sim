@@ -15,12 +15,12 @@ class PairElectrostaticInteraction(
     ]
 ):
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
-        r = query.positions.unsqueeze(1) - query.positions.unsqueeze(0) # [n, n, 2]
+        r = query.positions.unsqueeze(1) - query.positions.unsqueeze(0)  # [n, n, 2]
         dist = torch.norm(r, dim=2, keepdim=True) + SECURE_DIVISION_CONSTANT  # 1e-9 para que no haya division entre 0
         # print("DIST ", dist)
         ff = (1.0 / dist) ** 3
         aceleration = (r * ff).sum(dim=1)
-        aceleration *= query.phys_props.q ** 2
+        aceleration *= query.sim_props.k * query.phys_props.q ** 2 # TODO multiplicar por la carga de cada particula
         aceleration /= query.phys_props.m
 
         return GenericInteractionResponse(
