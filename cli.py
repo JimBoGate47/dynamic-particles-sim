@@ -8,9 +8,19 @@ from backend.src.common.infrastructure.repositories.constants import ORMConstant
 from backend.src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from backend.src.simulator.applitacion.use_cases.constants_builder import ConstantsBuilder
 from backend.src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
+from backend.src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
 from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 from backend.src.simulator.infrastructure.builders.particle_system import build_particles_2d
+from backend.src.simulator.infrastructure.interaction import (
+    PairElectrostaticInteraction,
+    PotencialWallInteractionDecorator,
+    FrictionInteractionDecorator,
+)
 from config.database import db_connection
+
+interactions = PairElectrostaticInteraction()
+interactions = PotencialWallInteractionDecorator(interactions)
+interactions_plus_friction = FrictionInteractionDecorator(interactions)
 
 
 async def main():
@@ -27,7 +37,8 @@ async def main():
             k=10,
             min_vel=0,
             r_confinement=RADIO,
-            beta=0.5,
+            k_confinement=0.5,
+            beta=0.8,
             dt=0.1,
         ),
         phys_props=PhysicalProps(
@@ -36,6 +47,7 @@ async def main():
         )
     )
     async with db_connection():
+        # TODO construir a partir de SimulationProps
         constants = await ConstantsBuilder(
             name="nombre3",
             g=ps.sim_props.g,
@@ -56,7 +68,10 @@ async def main():
                     orm_constants=ORMConstantsRepository(),
                 ).execute()
                 print(snap)
-            ps.velocity_verlet_step()
+            await VelocityVerletApplier(
+                particle_system=ps,
+                interactions=interactions,
+            ).execute()
 
 
 asyncio.run(main())
