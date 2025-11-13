@@ -41,9 +41,10 @@ async def main():
             beta=0.8,
             dt=0.1,
         ),
-        phys_props=PhysicalProps(
-            q=1.0,
-            m=1.0,
+        phys_props=PhysicalProps.from_charges(
+            n_particles=N_PARTICLES,
+            charges=[1.0],
+            device=device,
         )
     )
     async with db_connection():

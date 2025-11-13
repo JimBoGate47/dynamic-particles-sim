@@ -15,13 +15,37 @@ class PairElectrostaticInteraction(
     ]
 ):
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
-        r = query.positions.unsqueeze(1) - query.positions.unsqueeze(0)  # [n, n, 2]
-        dist = torch.norm(r, dim=2, keepdim=True) + SECURE_DIVISION_CONSTANT  # 1e-9 para que no haya division entre 0
-        # print("DIST ", dist)
+        # r tiene shape [N, N, 2], donde N es el número de partículas.
+        r = query.positions.unsqueeze(1) - query.positions.unsqueeze(0)
+
+        # dist tiene shape [N, N, 1]
+        dist = torch.norm(r, dim=2, keepdim=True) + SECURE_DIVISION_CONSTANT
+
+        # --- INICIO DE LA MODIFICACIÓN ---
+
+        # q tiene shape (N, 1). Lo convertimos a (1, N) para el producto.
+        q_source = query.phys_props.q.transpose(0, 1)  # Shape: (1, N)
+
+        # q_query tiene shape (N, 1)
+        q_query = query.phys_props.q
+
+        # El broadcasting (N, 1) * (1, N) resulta en una matriz de cargas (N, N)
+        # Cada elemento (i, j) contiene q_i * q_j. La expandimos para que tenga la misma dimensión que 'dist'.
+        charge_product = (q_query @ q_source).unsqueeze(-1)  # Shape: (N, N, 1)
+
+        # ff sigue siendo la ley de la inversa del cuadrado
         ff = (1.0 / dist) ** 3
-        aceleration = (r * ff).sum(dim=1)
-        aceleration *= query.sim_props.k * query.phys_props.q ** 2 # TODO multiplicar por la carga de cada particula
-        aceleration /= query.phys_props.m
+
+        # Multiplicamos la matriz de cargas por la fuerza base
+        # y luego por el vector de dirección 'r'.
+        force = r * ff * charge_product * query.sim_props.k
+
+        # Sumamos todas las fuerzas que actúan sobre cada partícula (dim=1)
+        # Dividimos por la masa individual de cada partícula.
+        # m tiene shape (N, 1), por lo que la división es elemento a elemento.
+        aceleration = force.sum(dim=1) / query.phys_props.m
+
+        # --- FIN DE LA MODIFICACIÓN ---
 
         return GenericInteractionResponse(
             acceleration=aceleration,

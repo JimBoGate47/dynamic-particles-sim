@@ -106,25 +106,27 @@ class ParticleSystem2DTensor:
 
 if __name__ == "__main__":
     RADIO = 1.0
+    N_PARTICLES = 3
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     ps = ParticleSystem2DTensor(
-        # pos=torch.tensor([[1., 2.], [3., 4.], [5., 6.]], device=device),  # torch.randn(3, 2, device=device),
-        # pos=torch.randn(3, 2, device=device),
         pos=ParticleSystem2DTensor.initialize_particles_in_circle(
-            n_particles=3,
+            n_particles=N_PARTICLES,
             R=RADIO,
             device=device,
         ),
-        sim_props=SimulationProperties(
-            r_confin=RADIO,
+        sim_props=SimulationProps(
+            r_confinement=RADIO,
             beta=0.0,
             dt=1.0,
+            g=9.8,
+            k=1.0,
+            min_vel=0.0,
+            k_confinement=0.0,
         ),
-        phys_props=PhysicalProperties(
-            q=2.0,
-            m=3.0,
+        phys_props=PhysicalProps(
+            q=torch.full((N_PARTICLES, 1), 2.0, device=device),
+            m=torch.full((N_PARTICLES, 1), 3.0, device=device),
         )
     )
-    print(ps.pos)
-    ps.velocity_verlet_step()
     print(ps.pos)
     print(ps.to_dict)
