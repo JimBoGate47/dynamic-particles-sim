@@ -7,7 +7,13 @@ def build_particles_2d(
         particles_tensor: ParticleSystem2DTensor,
 ) -> ParticleSystem2D:
     particles = []
-    for r, v, a in zip(particles_tensor.pos, particles_tensor.vel, particles_tensor.acc):
+    for r, v, a, q, m in zip(
+            particles_tensor.pos,
+            particles_tensor.vel,
+            particles_tensor.acc,
+            particles_tensor.phys_props.q,
+            particles_tensor.phys_props.m,
+    ):
         # obj_particles.append(
         #     Particle2D(
         #         r=Position2D(x=r[0].item(), y=r[1].item()),
@@ -16,12 +22,16 @@ def build_particles_2d(
         #         phys_props=PhysicalProperties(q=1, m=1),
         #     )
         # )
+        phys_props_dict = {
+            "q": q.item(),
+            "m": m.item(),
+        }
         particles.append(
             Particle(
                 r=[r[0].item(), r[1].item()],
                 v=[v[0].item(), v[1].item()],
                 a=[a[0].item(), a[1].item()],
-                phys_props=particles_tensor.phys_props.model_dump()
+                phys_props=phys_props_dict,
             )
         )
     return ParticleSystem2D(
