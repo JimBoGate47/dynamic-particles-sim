@@ -25,11 +25,12 @@ interactions_plus_friction = FrictionInteractionDecorator(interactions)
 
 async def main():
     RADIO = 6.0
+    N_PARTICLES = 32
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     ps = ParticleSystem2DTensor(
         pos=ParticleSystem2DTensor.initialize_particles_in_circle(
-            n_particles=6,
-            R=1,
+            n_particles=N_PARTICLES,
+            R=RADIO,
             device=device,
         ),
         sim_props=SimulationProps(
@@ -38,7 +39,7 @@ async def main():
             min_vel=0,
             r_confinement=RADIO,
             k_confinement=0.5,
-            beta=0.8,
+            beta=0.6,
             dt=0.1,
         ),
         phys_props=PhysicalProps.from_charges(
@@ -71,7 +72,7 @@ async def main():
                 print(snap)
             await VelocityVerletApplier(
                 particle_system=ps,
-                interactions=interactions,
+                interactions=interactions_plus_friction,
             ).execute()
 
 

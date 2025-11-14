@@ -36,8 +36,8 @@ async def main():
             x="rx", y="ry",
             animation_frame="step",
             hover_name="step",
-            range_x=[-10, 10],
-            range_y=[-10, 10],
+            range_x=[-20, 20],
+            range_y=[-20, 20],
         )
 
 
