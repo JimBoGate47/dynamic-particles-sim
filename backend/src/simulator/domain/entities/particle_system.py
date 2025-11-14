@@ -5,30 +5,8 @@ from typing import Optional
 import torch
 
 from backend.src.common.domain.entities.properties import SimulationProps, PhysicalProps
-from backend.src.common.domain.types.properties import PhysicalProperties, SimulationProperties
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-
-# def compute_acceleration(pos):
-#     r = pos.unsqueeze(1) - pos.unsqueeze(0)
-#     dist = torch.norm(r, dim=2, keepdim=True) + 1e-9
-#     ff = (1.0 / dist) ** 3
-#     acc = (r * ff).sum(dim=1)
-#     return acc
-
-# def wall(vel, pos): # TODO revisame si es necesario
-#     raise DeprecationWarning
-#     """
-#     vel: np.array([vx, vy])
-#     pos: np.array([x, y])
-#     returns: np.array([vf_x, vf_y])
-#     """
-#     rinv = 1.0 / np.sqrt(pos[0] ** 2 + pos[1] ** 2)
-#     dot = vel[0] * pos[1] - vel[1] * pos[0]
-#     vf_x = -vel[0] + 2 * dot * pos[1] * rinv * rinv
-#     vf_y = -vel[1] - 2 * dot * pos[0] * rinv * rinv
-#     return np.array([vf_x, vf_y])
 
 
 @dataclass
@@ -46,10 +24,15 @@ class ParticleSystem2DTensor:
         # self.enabled = torch.ones(n_particles, dtype=torch.bool, device=device)
 
     @classmethod
-    def initialize_particles_in_circle(cls, n_particles, R, device):
-        theta = 2 * math.pi * torch.rand(n_particles, device=device)
+    def initialize_particles_in_circle(cls, n_particles, R, device, random_seed=None):
+        generator = None
+        if random_seed:
+            generator = torch.Generator(device=device)
+            generator.manual_seed(random_seed)
 
-        r = R * torch.sqrt(torch.rand(n_particles, device=device))
+        theta = 2 * math.pi * torch.rand(n_particles, device=device, generator=generator)
+
+        r = R * torch.sqrt(torch.rand(n_particles, device=device, generator=generator))
 
         x = r * torch.cos(theta)
         y = r * torch.sin(theta)
