@@ -57,7 +57,26 @@ class PairElectrostaticInteraction(
 
 class BarrasInteractionDecorator(InteractionDecorator):
     def compute_aceleration(self, positions):
-        pass
+        raise NotImplementedError()
+
+
+class GravityInteractionDecorator(
+    InteractionDecorator[
+        GenericInteractionQuery,
+        GenericInteractionResponse,
+    ]
+):
+    def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
+        interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
+        gravity_force = query.phys_props.m * query.sim_props.g
+        gravity_acceleration = torch.zeros_like(interaction_response.acceleration)
+        gravity_acceleration[:, 1] = - gravity_force.squeeze() / query.phys_props.m.squeeze()
+        acceleration = interaction_response.acceleration + gravity_acceleration
+        return GenericInteractionResponse(
+            positions=query.positions,
+            velocity=query.velocity,
+            acceleration=acceleration,
+        )
 
 
 @dataclass
