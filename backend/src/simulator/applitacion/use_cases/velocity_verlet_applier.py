@@ -15,15 +15,15 @@ class VelocityVerletApplier(UseCase, Generic[T]):
     interactions: Interaction
 
     async def execute(self, *args, **kwargs):
-        new_pos = self.calculate_new_pos(
-            pos=self.particle_system.pos,
+        half_vel = self.calculate_half_vel(
             vel=self.particle_system.vel,
             acc=self.particle_system.acc,
             dt=self.particle_system.sim_props.dt,
         )
-        half_vel = self.calculate_half_vel(
-            vel=self.particle_system.vel,
-            acc=self.particle_system.acc,
+
+        new_pos = self.calculate_new_pos(
+            pos=self.particle_system.pos,
+            half_vel=half_vel,
             dt=self.particle_system.sim_props.dt,
         )
 
@@ -57,8 +57,8 @@ class VelocityVerletApplier(UseCase, Generic[T]):
         )
 
     @classmethod
-    def calculate_new_pos(cls, pos, vel, acc, dt) -> T:
-        return pos + cls.calculate_half_vel(vel, acc, dt) * dt
+    def calculate_new_pos(cls, pos, half_vel, dt) -> T:
+        return pos + half_vel * dt
 
     @classmethod
     def calculate_half_vel(cls, vel, acc, dt) -> T:
