@@ -58,7 +58,7 @@ class VelocityVerletApplier(UseCase, Generic[T]):
 
     @classmethod
     def calculate_new_pos(cls, pos, vel, acc, dt) -> T:
-        return pos + vel * dt + 0.5 * acc * (dt ** 2)
+        return pos + cls.calculate_half_vel(vel, acc, dt) * dt
 
     @classmethod
     def calculate_half_vel(cls, vel, acc, dt) -> T:
