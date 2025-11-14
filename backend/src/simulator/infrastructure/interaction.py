@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import torch
+from sympy.physics.units import force
 
 from backend.src.simulator.domain.interfaces import Interaction, InteractionDecorator
 from backend.src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
@@ -87,7 +88,8 @@ class FrictionInteractionDecorator(
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
         interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
         acceleration = interaction_response.acceleration
-        acceleration -= query.sim_props.beta * query.velocity
+        force_friction = - query.sim_props.beta * query.velocity
+        acceleration += force_friction / query.phys_props.m
         return GenericInteractionResponse(
             acceleration=acceleration,
         )
