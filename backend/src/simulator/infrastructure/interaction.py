@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 import torch
-from sympy.physics.units import force
 
 from backend.src.simulator.domain.interfaces import Interaction, InteractionDecorator
 from backend.src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
@@ -49,6 +48,8 @@ class PairElectrostaticInteraction(
         # --- FIN DE LA MODIFICACIÓN ---
 
         return GenericInteractionResponse(
+            positions=query.positions,
+            velocity=query.velocity,
             acceleration=aceleration,
         )
 
@@ -75,6 +76,8 @@ class PotencialWallInteractionDecorator(
         parabolic_acceleration = query.sim_props.k_confinement * query.positions
         parabolic_acceleration /= query.phys_props.m
         return GenericInteractionResponse(
+            positions=interaction_response.positions,
+            velocity=interaction_response.velocity,
             acceleration=interaction_response.acceleration - parabolic_acceleration
         )
 
@@ -91,5 +94,7 @@ class FrictionInteractionDecorator(
         force_friction = - query.sim_props.beta * query.velocity
         acceleration += force_friction / query.phys_props.m
         return GenericInteractionResponse(
+            positions=interaction_response.positions,
+            velocity=interaction_response.velocity,
             acceleration=acceleration,
         )
