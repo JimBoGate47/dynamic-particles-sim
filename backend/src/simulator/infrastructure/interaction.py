@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 
 import torch
@@ -73,12 +74,91 @@ class PotencialWallInteractionDecorator(
         pos: Tensor([x, y])
         returns: Tensor([new_ax, new_ay])
         """
-        parabolic_acceleration = query.sim_props.k_confinement * query.positions
-        parabolic_acceleration /= query.phys_props.m
+        potential_force = - query.sim_props.k_confinement * query.positions
+        potential_acceleration = potential_force / query.phys_props.m
         return GenericInteractionResponse(
             positions=interaction_response.positions,
             velocity=interaction_response.velocity,
-            acceleration=interaction_response.acceleration - parabolic_acceleration
+            acceleration=interaction_response.acceleration + potential_acceleration
+        )
+
+
+@dataclass
+class Potencial4WallInteractionDecorator(
+    InteractionDecorator[
+        GenericInteractionQuery,
+        GenericInteractionResponse,
+    ]
+):
+    def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
+        interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
+        # The potential is U = (1/4) * k * |r|^4
+        # The force is F = -grad(U) = -k * |r|^2 * r_vec
+        # The acceleration is a = F/m = - (k/m) * |r|^2 * r_vec
+        positions = query.positions
+        r_squared = torch.sum(positions ** 2, dim=1, keepdim=True)
+        potential_force = - query.sim_props.k_confinement * r_squared * positions
+        potential_acceleration = potential_force / query.phys_props.m
+        return GenericInteractionResponse(
+            positions=interaction_response.positions,
+            velocity=interaction_response.velocity,
+            acceleration=interaction_response.acceleration + potential_acceleration
+        )
+
+
+@dataclass
+class Potencial8WallInteractionDecorator(
+    InteractionDecorator[
+        GenericInteractionQuery,
+        GenericInteractionResponse,
+    ]
+):
+    def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
+        interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
+        # The potential is U = (1/8) * k * |r|^8
+        # The force is F = -grad(U) = -k * |r|^6 * r_vec
+        # The acceleration is a = F/m = - (k/m) * |r|^2 * r_vec
+        positions = query.positions
+        r_squared = torch.sum(positions ** 2, dim=1, keepdim=True)
+        # r^6 = (r^2)^3
+        r_sixth = r_squared ** 3
+        potential_force = - query.sim_props.k_confinement * r_sixth * positions
+        potential_acceleration = potential_force / query.phys_props.m
+        return GenericInteractionResponse(
+            positions=interaction_response.positions,
+            velocity=interaction_response.velocity,
+            acceleration=interaction_response.acceleration + potential_acceleration
+        )
+
+
+class HardWallInteractionDecorator(InteractionDecorator):
+    def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
+        """
+        Reflects particles upon collision with a wall of radius R.
+        For highly charged particles, very small time steps (dt) will be required.
+        Very large velocities will make the system unstable.
+        """
+        warnings.warn("""
+        This class may be unnecessary; consider using a hard wall by applying a potential V = k * r^n with n → infinity.
+        """)
+        interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
+        pos = query.positions.clone()
+        vel = query.velocity.clone()
+
+        r_mag = torch.linalg.norm(pos, dim=1)
+        collided = r_mag > query.sim_props.r_confinement
+
+        if collided.any():
+            n = pos[collided] / r_mag[collided].unsqueeze(1)
+            v_collided = vel[collided]
+            dot_products = torch.sum(v_collided * n, dim=1, keepdim=True)
+            vel[collided] = v_collided - 2 * dot_products * n
+            pos[collided] = n * query.sim_props.r_confinement
+
+        return GenericInteractionResponse(
+            positions=pos,
+            velocity=vel,
+            acceleration=interaction_response.acceleration,
         )
 
 
