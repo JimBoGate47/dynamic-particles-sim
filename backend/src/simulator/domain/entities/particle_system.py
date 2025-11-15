@@ -10,17 +10,21 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 @dataclass
-class ParticleSystem2DTensor:
+class System2DTensor:
     pos: torch.Tensor
-    phys_props: PhysicalProps
-    sim_props: SimulationProps
     vel: Optional[torch.Tensor] = None
     acc: Optional[torch.Tensor] = None
+    phys_props: PhysicalProps | None = None
+
+
+@dataclass
+class ParticleSystem2DTensor(System2DTensor):
+    sim_props: SimulationProps | None = None
     step: Optional[int] = 0
 
     def __post_init__(self):
-        self.vel = self.vel or torch.zeros_like(self.pos)
-        self.acc = self.acc or torch.zeros_like(self.pos)
+        self.vel = self.vel if self.vel is not None else torch.zeros_like(self.pos)
+        self.acc = self.acc if self.vel is not None else torch.zeros_like(self.pos)
         # self.enabled = torch.ones(n_particles, dtype=torch.bool, device=device)
 
     @classmethod
