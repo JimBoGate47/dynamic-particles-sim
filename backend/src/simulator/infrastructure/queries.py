@@ -4,7 +4,12 @@ from typing import Optional
 import torch
 
 from backend.src.common.domain.entities.properties import PhysicalProps, SimulationProps
-from backend.src.simulator.domain.queries import InteractionQuery, InteractionResponse
+from backend.src.simulator.domain.queries import (
+    InteractionQuery,
+    InteractionResponse,
+    RestrictionResponse,
+    RestrictionQuery,
+)
 
 
 @dataclass
@@ -20,3 +25,14 @@ class GenericInteractionResponse(InteractionResponse):
     positions: Optional[torch.Tensor] = None
     velocity: Optional[torch.Tensor] = None
     acceleration: Optional[torch.Tensor] = None
+
+
+@dataclass
+class PositionRestrictionQuery(RestrictionQuery):
+    old_positions: torch.Tensor
+    new_positions: torch.Tensor
+
+
+@dataclass
+class PositionRestrictionResponse(RestrictionResponse):
+    new_positions: torch.Tensor

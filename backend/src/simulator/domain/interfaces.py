@@ -4,6 +4,8 @@ from typing import Generic, TypeVar
 
 Q = TypeVar("Q", bound="InteractionQuery")
 R = TypeVar("R", bound="InteractionResponse")
+RQ = TypeVar("RQ", bound="RestrictionQuery")
+RR = TypeVar("RR", bound="RestrictionResponse")
 
 
 class Interaction(ABC, Generic[Q, R]):
@@ -19,3 +21,9 @@ class InteractionDecorator(Interaction[Q, R], Generic[Q, R]):
     @abstractmethod
     def compute_aceleration(self, query: Q) -> R:
         return self._wrapee.compute_aceleration(query)
+
+
+class SystemRestriction(ABC, Generic[RQ, RR]):
+    @abstractmethod
+    def apply(self, query: RQ) -> RR:
+        raise NotImplementedError

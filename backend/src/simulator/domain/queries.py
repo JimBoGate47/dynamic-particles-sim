@@ -4,3 +4,11 @@ class InteractionQuery:
 
 class InteractionResponse:
     pass
+
+
+class RestrictionQuery:
+    pass
+
+
+class RestrictionResponse:
+    pass
