@@ -3,7 +3,7 @@ from typing import List
 
 from bson import ObjectId
 
-from src.common.domain.entities import Constants
+from backend.src.common.domain.entities import Constants
 
 
 class ConstantsRepository(ABC):

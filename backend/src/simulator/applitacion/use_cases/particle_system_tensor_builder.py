@@ -5,7 +5,7 @@ from backend.src.common.domain.entities.properties import SimulationProps
 from backend.src.simulator.applitacion.mixins import SnapshotFinderMixin
 from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 from backend.src.simulator.infrastructure.builders.system_tensor import build_system_tensor
-from src.common.use_cases import UseCase
+from backend.src.common.domain.interfaces import UseCase
 
 
 @dataclass
