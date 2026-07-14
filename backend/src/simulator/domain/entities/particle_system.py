@@ -24,7 +24,7 @@ class ParticleSystem2DTensor(System2DTensor):
 
     def __post_init__(self):
         self.vel = self.vel if self.vel is not None else torch.zeros_like(self.pos)
-        self.acc = self.acc if self.vel is not None else torch.zeros_like(self.pos)
+        self.acc = self.acc if self.acc is not None else torch.zeros_like(self.pos)
         # self.enabled = torch.ones(n_particles, dtype=torch.bool, device=device)
 
     @classmethod
