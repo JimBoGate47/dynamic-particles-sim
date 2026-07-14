@@ -2,6 +2,19 @@
 
 This repository contains code for simulating the dynamics of particles confined within a bounded space. The simulation models particle interactions, confinement effects, and dynamic behavior over time.
 
+## Docker Setup (optional)
+
+If you prefer not to install MongoDB manually, you can run the services with Docker Compose:
+
+1. Install [Docker](https://docs.docker.com/engine/install/).
+2. Launch in the background:
+
+```bash
+docker compose up -d
+```
+
+This starts **MongoDB** (`mongo:8.3`) and **mongo-express** (web UI at `http://localhost:8081`).
+
 ## Requirements
 
 This project uses [**uv**](https://docs.astral.sh/uv/) for environment and dependency management.
