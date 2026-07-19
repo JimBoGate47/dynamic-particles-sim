@@ -1,4 +1,4 @@
-from src.common.domain.entities import Particle
+from src.common.domain.entities.particle import Particle
 from src.common.domain.entities.particle_system import ParticleSystem2D
 from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 

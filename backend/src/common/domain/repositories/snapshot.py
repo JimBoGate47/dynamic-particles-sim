@@ -1,7 +1,8 @@
 from abc import abstractmethod, ABC
 from typing import List, Optional
 
-from src.common.domain.entities import Snapshot, Particle
+from src.common.domain.entities import Snapshot
+from src.common.domain.entities.particle import Particle
 from src.common.domain.filters.snapshot import SnapshotsFilter
 
 

@@ -1,9 +1,9 @@
 from bson import ObjectId
 
-from src.common.domain.models.constants import ConstantsORM
 from src.common.domain.entities import Constants
-from src.common.infrastructure.builders.constants import build_constants
+from src.common.domain.models.constants import ConstantsORM
 from src.common.domain.repositories.constants import ConstantsRepository
+from src.common.infrastructure.builders.constants import build_constants
 
 
 class ORMConstantsRepository(ConstantsRepository):

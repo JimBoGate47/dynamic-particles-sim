@@ -1,5 +1,5 @@
 from src.common.domain.models.particle import ParticleORM
-from src.common.domain.types.particle import Particle2D, Particle, Position2D, Velocity2D, Aceleration2D
+from src.common.domain.types.particle import Particle, Particle2D, Position2D, Velocity2D, Aceleration2D
 from src.common.domain.types.properties import PhysicalProperties
 
 

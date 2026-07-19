@@ -2,8 +2,8 @@ from typing import Union
 
 from beanie import Link
 
-from src.common.domain.models.constants import ConstantsORM
 from src.common.domain.entities import Constants
+from src.common.domain.models.constants import ConstantsORM
 
 
 def build_constants(constants: Union[ConstantsORM, Link[ConstantsORM]]) -> Constants:

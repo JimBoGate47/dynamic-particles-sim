@@ -1,8 +1,8 @@
 import reflex as rx
-from frontend.states.constants_state import ConstantsState, COLUMNS
+
 from frontend.components.data_table import data_table
 from frontend.components.json_modal import json_modal
-
+from frontend.states.constants_state import ConstantsState, COLUMNS
 
 _ACTION_BUTTONS = [
     {
@@ -15,7 +15,7 @@ _ACTION_BUTTONS = [
 
 
 def _on_row_click(row) -> rx.event:
-    return lambda: ConstantsState.open_modal(row["id"])
+    return lambda: ConstantsState.open_modal(row.id)
 
 
 def constants() -> rx.Component:
@@ -34,7 +34,7 @@ def constants() -> rx.Component:
                 action_buttons=_ACTION_BUTTONS,
             ),
             json_modal(
-                title="Datos del proyecto",
+                title="Detalles",
                 json_content=ConstantsState.selected_json,
                 is_open=ConstantsState.show_modal,
                 on_close=ConstantsState.close_modal,

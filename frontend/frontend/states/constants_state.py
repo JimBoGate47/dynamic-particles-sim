@@ -1,15 +1,7 @@
-import json
 import reflex as rx
 
-ROWS = [
-    {
-        "id": 1,
-        "name": "nombre",
-        "confinement": "conf_value",
-        "ruta": "false",
-        "version": "vx",
-    },
-]
+from frontend.domain.types.constants import Constants
+from frontend.infrastructure.simulator import SimulatorService
 
 COLUMNS = [
     {"key": "id", "header": "ID"},
@@ -21,23 +13,27 @@ COLUMNS = [
 
 
 class ConstantsState(rx.State):
-    rows: list[dict] = ROWS
-    selected_row: dict = {}
+    rows: list[Constants] = []
+    selected_row: Constants | None = None
     show_modal: bool = False
 
-    def open_modal(self, row_id: int):
+    async def load_data(self):
+        service = SimulatorService()
+        self.rows = await service.constants_finder()
+
+    def open_modal(self, row_id: str):
         for row in self.rows:
-            if row["id"] == row_id:
+            if row.id == row_id:
                 self.selected_row = row
                 break
         self.show_modal = True
 
     def close_modal(self):
         self.show_modal = False
-        self.selected_row = {}
+        self.selected_row = None
 
     @rx.var(cache=True)
     def selected_json(self) -> str:
-        if not self.selected_row:
+        if self.selected_row is None:
             return ""
-        return json.dumps(self.selected_row, indent=2, ensure_ascii=False)
+        return self.selected_row.model_dump_json(indent=2)

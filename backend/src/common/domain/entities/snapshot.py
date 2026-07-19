@@ -1,11 +1,8 @@
 from typing import List, Optional
 
-from bson import ObjectId
-from pydantic import BaseModel
-
 from src.common.domain.entities.base import CustomBaseModel
-from src.common.domain.entities.particle import Particle
 from src.common.domain.entities.constants import Constants
+from src.common.domain.entities.particle import Particle
 
 
 class Snapshot(CustomBaseModel):

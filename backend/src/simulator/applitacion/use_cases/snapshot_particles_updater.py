@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from src.common.domain.entities import Particle
+from src.common.domain.entities.particle import Particle
 from src.common.domain.interfaces import UseCase
 from src.common.domain.repositories.snapshot import SnapshotRepository
 

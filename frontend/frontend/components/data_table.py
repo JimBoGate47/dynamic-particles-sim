@@ -1,4 +1,5 @@
 from collections.abc import Callable
+
 import reflex as rx
 
 
@@ -40,12 +41,17 @@ def _render_body(
 ) -> rx.Component:
     has_actions = action_buttons is not None
 
+    def _get_value(row, key):
+        if isinstance(row, dict):
+            return row.get(key, "")
+        return getattr(row, key, "")
+
     def _row_template(row):
         click_handler = on_click(row) if on_click else None
         cells = [
             rx.el.td(
                 rx.button(
-                    row[col["key"]],
+                    _get_value(row, col["key"]),
                     on_click=click_handler,
                     variant="ghost",
                     size="1",
