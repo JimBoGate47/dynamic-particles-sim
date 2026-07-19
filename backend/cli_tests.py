@@ -3,12 +3,12 @@ from pprint import pprint
 
 import torch
 
-from backend.src.common.domain.entities.particle_system import ParticleSystem2D
-from backend.src.common.domain.entities.properties import PhysicalProps, SimulationProps
-from backend.src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
-from backend.src.simulator.infrastructure.builders.particle_system import build_particles_2d
-from backend.src.simulator.infrastructure.interaction import (
+from src.common.domain.entities.particle_system import ParticleSystem2D
+from src.common.domain.entities.properties import PhysicalProps, SimulationProps
+from src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
+from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
+from src.simulator.infrastructure.builders.particle_system import build_particles_2d
+from src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
     PotencialWallInteractionDecorator,
     FrictionInteractionDecorator,

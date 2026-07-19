@@ -3,8 +3,8 @@ from typing import Optional
 
 import torch
 
-from backend.src.common.domain.entities.properties import PhysicalProps, SimulationProps
-from backend.src.simulator.domain.queries import (
+from src.common.domain.entities.properties import PhysicalProps, SimulationProps
+from src.simulator.domain.queries import (
     InteractionQuery,
     InteractionResponse,
     RestrictionResponse,

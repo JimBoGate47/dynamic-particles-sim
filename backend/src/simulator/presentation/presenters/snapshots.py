@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from backend.src.common.domain.entities import Snapshot
+from src.common.domain.entities import Snapshot
 
 
 @dataclass

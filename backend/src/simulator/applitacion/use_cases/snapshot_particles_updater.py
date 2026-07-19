@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import List
 
-from backend.src.common.domain.entities import Particle
-from backend.src.common.domain.interfaces import UseCase
-from backend.src.common.domain.repositories.snapshot import SnapshotRepository
+from src.common.domain.entities import Particle
+from src.common.domain.interfaces import UseCase
+from src.common.domain.repositories.snapshot import SnapshotRepository
 
 
 @dataclass

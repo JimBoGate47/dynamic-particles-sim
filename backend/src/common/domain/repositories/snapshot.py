@@ -1,8 +1,8 @@
 from abc import abstractmethod, ABC
 from typing import List, Optional
 
-from backend.src.common.domain.entities import Snapshot, Particle
-from backend.src.common.domain.filters.snapshot import SnapshotsFilter
+from src.common.domain.entities import Snapshot, Particle
+from src.common.domain.filters.snapshot import SnapshotsFilter
 
 
 class SnapshotRepository(ABC):

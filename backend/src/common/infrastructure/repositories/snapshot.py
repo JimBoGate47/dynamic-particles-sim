@@ -2,11 +2,11 @@ from typing import List, Optional
 
 from beanie import PydanticObjectId
 
-from backend.src.common.domain.entities import Snapshot, Particle
-from backend.src.common.domain.filters.snapshot import SnapshotsFilter
-from backend.src.common.domain.models.snapshot import SnapshotORM, ConstantsORM
-from backend.src.common.domain.repositories.snapshot import SnapshotRepository
-from backend.src.common.infrastructure.builders.snapshot import build_snapshot
+from src.common.domain.entities import Snapshot, Particle
+from src.common.domain.filters.snapshot import SnapshotsFilter
+from src.common.domain.models.snapshot import SnapshotORM, ConstantsORM
+from src.common.domain.repositories.snapshot import SnapshotRepository
+from src.common.infrastructure.builders.snapshot import build_snapshot
 
 
 class ORMSnapshotRepository(SnapshotRepository):

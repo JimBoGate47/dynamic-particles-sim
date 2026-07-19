@@ -4,7 +4,7 @@ from typing import Optional
 
 import torch
 
-from backend.src.common.domain.entities.properties import SimulationProps, PhysicalProps
+from src.common.domain.entities.properties import SimulationProps, PhysicalProps
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

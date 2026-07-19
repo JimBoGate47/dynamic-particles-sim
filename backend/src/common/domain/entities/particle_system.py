@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from backend.src.common.domain.entities import Particle
+from src.common.domain.entities import Particle
 
 
 # TODO tal vez no es necesario, igual a Snapshot?

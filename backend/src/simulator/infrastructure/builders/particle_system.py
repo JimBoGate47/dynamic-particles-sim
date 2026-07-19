@@ -1,6 +1,6 @@
-from backend.src.common.domain.entities import Particle
-from backend.src.common.domain.entities.particle_system import ParticleSystem2D
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
+from src.common.domain.entities import Particle
+from src.common.domain.entities.particle_system import ParticleSystem2D
+from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 
 
 def build_particles_2d(

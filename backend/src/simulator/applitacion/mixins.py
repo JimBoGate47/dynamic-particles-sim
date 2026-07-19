@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from backend.src.common.domain.entities import Snapshot
-from backend.src.common.domain.repositories.snapshot import SnapshotRepository
+from src.common.domain.entities import Snapshot
+from src.common.domain.repositories.snapshot import SnapshotRepository
 
 
 @dataclass

@@ -1,70 +1,95 @@
 # Dynamic Confined Particles
 
-This repository contains code for simulating the dynamics of particles confined within a bounded space. The simulation models particle interactions, confinement effects, and dynamic behavior over time.
+Simulación de dinámica de partículas confinadas en un espacio acotado. Modela interacciones electrostáticas, efectos de confinamiento y comportamiento dinámico.
 
-## Docker Setup (optional)
+## Estructura del proyecto
 
-If you prefer not to install MongoDB manually, you can run the services with Docker Compose:
+```
+├── backend/           # Motor de simulación + API FastAPI
+│   ├── cli.py         # Script CLI: ejecutar simulación y guardar en DB
+│   ├── cli_plot.py    # Script CLI: graficar snapshots desde DB
+│   ├── cli_tests.py   # Script CLI: pruebas rápidas de simulación
+│   ├── config/        # Configuración (DB, etc.)
+│   ├── plotting/      # Utilidades de gráficos
+│   ├── src/           # Código fuente del dominio/simulador
+│   └── tests/
+├── frontend/          # Interfaz de usuario con Reflex
+│   └── frontend/
+├── docker-compose.yml # MongoDB + mongo-express
+└── pyproject.toml     # Workspace root uv
+```
 
-1. Install [Docker](https://docs.docker.com/engine/install/).
-2. Launch in the background:
+## Docker Setup (opcional)
+
+Si prefieres no instalar MongoDB manualmente:
 
 ```bash
 docker compose up -d
 ```
 
-This starts **MongoDB** (`mongo:8.3`) and **mongo-express** (web UI at `http://localhost:8081`).
+Inicia **MongoDB** (`mongo:8.3`) y **mongo-express** (web UI en `http://localhost:8081`).
 
-## Requirements
+## Requisitos
 
-This project uses [**uv**](https://docs.astral.sh/uv/) for environment and dependency management.
+Usamos [**uv**](https://docs.astral.sh/uv/) para gestión de entornos y dependencias.
 
-> Make sure you have the Python version specified in `.python-version` installed.
+### Instalación
 
-### Installation
-
-1. Clone the repository and navigate to the project directory:
+1. Clonar el repositorio:
 
 ```bash
 git clone https://github.com/JimBoGate47/dynamic-particles-sim.git
 cd dynamic-particles-sim
 ```
 
-2. Install `uv` following the official instructions:
+2. Instalar `uv` (si no lo tienes):
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-3. Sync dependencies:
+3. Sincronizar dependencias (instala dependencias del backend + frontend):
 
 ```bash
-uv sync
+uv sync --all-packages
 ```
 
-4. Activate the virtual environment:
+4. Activar el entorno virtual:
 
 ```bash
 source .venv/bin/activate
 ```
 
-5. Run the test scripts:
+## Uso
+
+### Backend — Scripts de simulación (ejecutar desde `backend/`)
 
 ```bash
-python cli.py
-python cli_plot.py
+cd backend
+python cli.py         # Ejecutar simulación y guardar en DB
+python cli_plot.py    # Graficar resultados desde DB
+python cli_tests.py   # Pruebas rápidas
 ```
 
-> ⚠️ **Note:** The simulation results may vary depending on the initial conditions of the particles.
+### Frontend — Interfaz Reflex
+
+```bash
+cd frontend
+reflex run
+```
+
+## Tests
+
+```bash
+cd backend
+pytest tests/
+```
 
 ## 📚 Citation
 
-If you find this code useful for your research or work, please consider citing the associated publication where this
-simulation framework was originally developed and applied.  
-Proper citation helps support the continued development of open research tools.
+Si este código te resulta útil, por favor cita la publicación original:
 
 > **Sirpa-Poma, J. W., Ghezzi, F., & Ramírez-Ávila, G. M. (2023).**  
-> *The equilibrium of particles electrostatically confined by external forces and the competition between the
-electrostatic interaction and gravitational field.*  
+> *The equilibrium of particles electrostatically confined by external forces and the competition between the electrostatic interaction and gravitational field.*  
 > *Journal of Electrostatics, 126*, 103860.  
 > [https://doi.org/10.1016/j.elstat.2023.103860](https://doi.org/10.1016/j.elstat.2023.103860)

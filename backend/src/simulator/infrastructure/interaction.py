@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 import torch
 
-from backend.src.simulator.domain.interfaces import Interaction, InteractionDecorator
-from backend.src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
+from src.simulator.domain.interfaces import Interaction, InteractionDecorator
+from src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
 
 SECURE_DIVISION_CONSTANT = 1e-9
 

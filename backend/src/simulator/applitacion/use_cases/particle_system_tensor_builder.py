@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from backend.src.common.domain.entities import Snapshot
-from backend.src.common.domain.entities.properties import SimulationProps
-from backend.src.simulator.applitacion.mixins import SnapshotFinderMixin
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
-from backend.src.simulator.infrastructure.builders.system_tensor import build_system_tensor
-from backend.src.common.domain.interfaces import UseCase
+from src.common.domain.entities import Snapshot
+from src.common.domain.entities.properties import SimulationProps
+from src.simulator.applitacion.mixins import SnapshotFinderMixin
+from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
+from src.simulator.infrastructure.builders.system_tensor import build_system_tensor
+from src.common.domain.interfaces import UseCase
 
 
 @dataclass

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from backend.src.common.domain.entities import Constants
-from backend.src.common.domain.interfaces import UseCase
-from backend.src.common.domain.repositories.constants import ConstantsRepository
+from src.common.domain.entities import Constants
+from src.common.domain.interfaces import UseCase
+from src.common.domain.repositories.constants import ConstantsRepository
 
 
 @dataclass

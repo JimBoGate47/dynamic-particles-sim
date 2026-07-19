@@ -3,7 +3,7 @@ name = "sim-anillos"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = [
     "beanie>=1.29.0",
     "fastapi[standard]>=0.115.11",
@@ -11,4 +11,9 @@ dependencies = [
     "pandas>=2.2.3",
     "plotly>=6.0.0",
     "torch>=2.7.0",
+]
+
+[tool.uv.workspace]
+members = [
+    "frontend",
 ]

@@ -2,8 +2,8 @@ from typing import List
 
 from beanie import Document, Link
 
-from backend.src.common.domain.entities import Particle
-from backend.src.common.domain.models.constants import ConstantsORM
+from src.common.domain.entities import Particle
+from src.common.domain.models.constants import ConstantsORM
 
 
 class SnapshotORM(Document):

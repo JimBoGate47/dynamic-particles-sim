@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 import torch
 
-from backend.src.simulator.domain.interfaces import SystemRestriction
-from backend.src.simulator.infrastructure.queries import PositionRestrictionResponse, PositionRestrictionQuery
+from src.simulator.domain.interfaces import SystemRestriction
+from src.simulator.infrastructure.queries import PositionRestrictionResponse, PositionRestrictionQuery
 
 
 @dataclass

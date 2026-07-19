@@ -1,11 +1,11 @@
 import asyncio
 from pprint import pprint
 
-from backend.src.common.domain.entities import Snapshot
-from backend.src.common.domain.filters.snapshot import SnapshotsFilter
-from backend.src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
-from backend.src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
-from backend.src.simulator.presentation.presenters.snapshots import SnapshotsDataframePresenter
+from src.common.domain.entities import Snapshot
+from src.common.domain.filters.snapshot import SnapshotsFilter
+from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
+from src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
+from src.simulator.presentation.presenters.snapshots import SnapshotsDataframePresenter
 from config.database import db_connection
 from plotting.plot_particles2 import plot_data
 

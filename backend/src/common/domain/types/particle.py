@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import overload
 
-from backend.src.common.domain.types.properties import PhysicalProperties
+from src.common.domain.types.properties import PhysicalProperties
 
 
 @dataclass

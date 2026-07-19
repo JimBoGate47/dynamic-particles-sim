@@ -1,8 +1,8 @@
 import torch
 
-from backend.src.common.domain.entities import Snapshot
-from backend.src.common.domain.entities.properties import PhysicalProps
-from backend.src.simulator.domain.entities.particle_system import System2DTensor
+from src.common.domain.entities import Snapshot
+from src.common.domain.entities.properties import PhysicalProps
+from src.simulator.domain.entities.particle_system import System2DTensor
 
 
 def build_system_tensor(

@@ -1,4 +1,4 @@
-from backend.src.common.domain.entities.base import CustomBaseModel
+from src.common.domain.entities.base import CustomBaseModel
 
 
 class Constants(CustomBaseModel):

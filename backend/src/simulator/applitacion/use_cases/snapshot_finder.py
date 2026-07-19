@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from backend.src.common.domain.entities import Snapshot
-from backend.src.common.domain.interfaces import UseCase
-from backend.src.common.domain.repositories.snapshot import SnapshotRepository
-from backend.src.simulator.applitacion.mixins import SnapshotFinderMixin
+from src.common.domain.entities import Snapshot
+from src.common.domain.interfaces import UseCase
+from src.common.domain.repositories.snapshot import SnapshotRepository
+from src.simulator.applitacion.mixins import SnapshotFinderMixin
 
 
 @dataclass

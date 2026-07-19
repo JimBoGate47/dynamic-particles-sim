@@ -2,16 +2,16 @@ import asyncio
 
 import torch
 
-from backend.src.common.domain.entities.particle_system import ParticleSystem2D
-from backend.src.common.domain.entities.properties import PhysicalProps, SimulationProps
-from backend.src.common.infrastructure.repositories.constants import ORMConstantsRepository
-from backend.src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
-from backend.src.simulator.applitacion.use_cases.constants_builder import ConstantsBuilder
-from backend.src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
-from backend.src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
-from backend.src.simulator.infrastructure.builders.particle_system import build_particles_2d
-from backend.src.simulator.infrastructure.interaction import (
+from src.common.domain.entities.particle_system import ParticleSystem2D
+from src.common.domain.entities.properties import PhysicalProps, SimulationProps
+from src.common.infrastructure.repositories.constants import ORMConstantsRepository
+from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
+from src.simulator.applitacion.use_cases.constants_builder import ConstantsBuilder
+from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
+from src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
+from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
+from src.simulator.infrastructure.builders.particle_system import build_particles_2d
+from src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
     PotencialWallInteractionDecorator,
     FrictionInteractionDecorator,
@@ -26,7 +26,11 @@ interactions_plus_friction = FrictionInteractionDecorator(interactions)
 async def main():
     RADIO = 6.0
     N_PARTICLES = 32
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device(
+        'cpu'
+        # if torch.cuda.is_available()
+        # else 'cpu'
+    )
     ps = ParticleSystem2DTensor(
         pos=ParticleSystem2DTensor.initialize_particles_in_circle(
             n_particles=N_PARTICLES,

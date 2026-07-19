@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import TypeVar, Generic
 
-from backend.src.common.domain.interfaces import UseCase
-from backend.src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
-from backend.src.simulator.domain.interfaces import Interaction, SystemRestriction
-from backend.src.simulator.infrastructure.queries import (
+from src.common.domain.interfaces import UseCase
+from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
+from src.simulator.domain.interfaces import Interaction, SystemRestriction
+from src.simulator.infrastructure.queries import (
     GenericInteractionResponse,
     GenericInteractionQuery,
     PositionRestrictionQuery,

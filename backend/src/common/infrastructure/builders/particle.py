@@ -1,6 +1,6 @@
-from backend.src.common.domain.models.particle import ParticleORM
-from backend.src.common.domain.types.particle import Particle2D, Particle, Position2D, Velocity2D, Aceleration2D
-from backend.src.common.domain.types.properties import PhysicalProperties
+from src.common.domain.models.particle import ParticleORM
+from src.common.domain.types.particle import Particle2D, Particle, Position2D, Velocity2D, Aceleration2D
+from src.common.domain.types.properties import PhysicalProperties
 
 
 def build_particle_2d(
