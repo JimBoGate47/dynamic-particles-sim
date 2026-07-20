@@ -22,7 +22,8 @@ def plotly_modal(
                 rx.hstack(
                     rx.text("Paso:", font_size="0.875rem"),
                     rx.text(slider_value, font_weight="bold", font_size="0.875rem"),
-                    rx.text(f"/ {max_slider}", font_size="0.875rem", color="#94a3b8"),
+                    rx.text("/", font_size="0.875rem", color="#94a3b8"),
+                    rx.text(max_slider, font_size="0.875rem", color="#94a3b8"),
                     rx.spacer(),
                     rx.tooltip(
                         rx.icon_button(
@@ -39,14 +40,13 @@ def plotly_modal(
                     padding_bottom="0.5rem",
                 ),
                 rx.plotly(
-                    data=figure_json["data"],
-                    layout=figure_json["layout"],
+                    data=figure_json,
                     config=PLOTLY_CONFIG,
                     width="100%",
-                    height="400px",
+                    height="450px",
                 ),
                 rx.hstack(
-                    rx.text("0", font_size="0.75rem", color="#94a3b8"),
+                    rx.text(slider_value, font_size="0.75rem", color="#94a3b8"),
                     rx.input(
                         type="range",
                         min=0,
@@ -55,12 +55,13 @@ def plotly_modal(
                         on_change=on_slider_change,
                         width="100%",
                     ),
-                    rx.text(str(max_slider), font_size="0.75rem", color="#94a3b8"),
+                    rx.text(max_slider, font_size="0.75rem", color="#94a3b8"),
                     spacing="2",
                     width="100%",
                     align="center",
                 ),
                 width="100%",
+                spacing="3",
             ),
             style=dict(
                 background="#1e293b",

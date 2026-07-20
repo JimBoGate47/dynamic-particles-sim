@@ -1,3 +1,5 @@
+from loguru import logger
+
 from frontend.domain.types.constants import Constants
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
 from src.simulator.presentation.constants import find_constants
@@ -13,10 +15,14 @@ class SimulatorService:
         ]
 
     async def snapshot_lister(self, constants_name: str) -> SnapshotsCollection:
+        logger.info("Fetching {} snapshots", constants_name)
         responses = await list_snapshots(constants_name)
-        return SnapshotsCollection(
+        logger.info("Received {} snapshots", len(responses))
+
+        collection = SnapshotsCollection(
             snapshots=[
                 Snapshot.model_validate(response)
                 for response in responses
             ]
         )
+        return collection
