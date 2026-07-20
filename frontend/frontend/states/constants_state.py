@@ -1,4 +1,7 @@
+import json
+
 import reflex as rx
+from pydantic import ValidationError
 
 from frontend.domain.types.constants import Constants
 from frontend.infrastructure.simulator import SimulatorService
@@ -11,11 +14,31 @@ COLUMNS = [
     {"key": "version", "header": "Version"},
 ]
 
+_NEW_DEFAULTS = {
+    "name": "",
+    "g": 0,
+    "k": 0,
+    "dt": 0,
+    "min_vel": 0,
+    "friction": 0,
+    "confinement": "radial",
+    "r_confinement": 0,
+    "ruta": False,
+    "version": "v1",
+    "barra_height": 0,
+    "barra_qlamb": 0,
+}
+
 
 class ConstantsState(rx.State):
     rows: list[Constants] = []
     selected_row: Constants | None = None
     show_modal: bool = False
+    show_new_modal: bool = False
+    new_constants_raw: str = ""
+
+    def set_new_constants_raw(self, new_value: str):
+        self.new_constants_raw = new_value
 
     async def load_data(self):
         service = SimulatorService()
@@ -31,6 +54,40 @@ class ConstantsState(rx.State):
     def close_modal(self):
         self.show_modal = False
         self.selected_row = None
+
+    def open_new_modal(self):
+        self.new_constants_raw = json.dumps(_NEW_DEFAULTS, indent=2)
+        self.show_new_modal = True
+
+    def close_new_modal(self):
+        self.show_new_modal = False
+        self.new_constants_raw = ""
+
+    @rx.event
+    async def save_new_constants(self):
+        try:
+            data = json.loads(self.new_constants_raw)
+        except json.JSONDecodeError as e:
+            yield rx.toast.error(f"JSON inválido: {e}")
+            return
+
+        data.pop("id", None)
+        try:
+            validated = Constants.model_validate(data)
+        except ValidationError as e:
+            yield rx.toast.error(f"Datos inválidos: {e}")
+            return
+
+        service = SimulatorService()
+        try:
+            created = await service.constants_creator(validated.model_dump(mode="json"))
+        except Exception as e:
+            yield rx.toast.error(f"Error al guardar: {e}")
+            return
+
+        self.rows.append(created)
+        self.close_new_modal()
+        yield rx.toast.success(f"Constants '{created.name}' creadas")
 
     @rx.var(cache=True)
     def selected_json(self) -> str:

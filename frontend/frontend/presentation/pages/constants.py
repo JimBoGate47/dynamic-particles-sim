@@ -19,13 +19,72 @@ def _on_row_click(row) -> rx.event:
     return lambda: ConstantsState.open_modal(row.id)
 
 
+def _new_modal() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.vstack(
+                rx.dialog.title(
+                    "New Constants",
+                    font_size="1.25rem",
+                    font_weight="bold",
+                ),
+                rx.text_area(
+                    value=ConstantsState.new_constants_raw,
+                    on_change=ConstantsState.set_new_constants_raw,
+                    min_height="300px",
+                    width="100%",
+                    font_family="monospace",
+                    font_size="0.875rem",
+                    spell_check=False,
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancelar",
+                            variant="soft",
+                            color_scheme="gray",
+                        ),
+                    ),
+                    rx.spacer(),
+                    rx.button(
+                        "Save",
+                        color_scheme="green",
+                        on_click=ConstantsState.save_new_constants,
+                    ),
+                    width="100%",
+                ),
+                width="100%",
+                spacing="3",
+            ),
+            style=dict(
+                background="#1e293b",
+                border="1px solid #334155",
+                max_width="700px",
+                width="90%",
+            ),
+        ),
+        open=ConstantsState.show_new_modal,
+    )
+
+
 def constants() -> rx.Component:
     return rx.container(
         rx.vstack(
-            rx.heading(
-                "Constants",
-                size="7",
-                color="#f1f5f9",
+            rx.hstack(
+                rx.heading(
+                    "Constants",
+                    size="7",
+                    color="#f1f5f9",
+                ),
+                rx.spacer(),
+                rx.button(
+                    rx.icon("plus"),
+                    "New",
+                    color_scheme="green",
+                    variant="solid",
+                    on_click=ConstantsState.open_new_modal,
+                ),
+                width="100%",
                 margin_bottom="1rem",
             ),
             data_table(
@@ -40,6 +99,7 @@ def constants() -> rx.Component:
                 is_open=ConstantsState.show_modal,
                 on_close=ConstantsState.close_modal,
             ),
+            _new_modal(),
             width="100%",
             spacing="4",
             padding_y="2rem",

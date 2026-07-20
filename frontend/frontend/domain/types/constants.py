@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class Constants(BaseModel):
-    id: str
+    id: str = ""
     name: str
     g: float
     k: float

@@ -2,7 +2,7 @@ from loguru import logger
 
 from frontend.domain.types.constants import Constants
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
-from src.simulator.presentation.constants import find_constants
+from src.simulator.presentation.constants import create_constants, find_constants
 from src.simulator.presentation.snapshots import list_snapshots
 
 
@@ -26,3 +26,8 @@ class SimulatorService:
             ]
         )
         return collection
+
+    async def constants_creator(self, data: dict) -> Constants:
+        logger.info("Creating constants with name={}", data.get("name"))
+        response = await create_constants(data)
+        return Constants.model_validate(response)
