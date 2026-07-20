@@ -23,7 +23,7 @@ def constants() -> rx.Component:
     return rx.container(
         rx.vstack(
             rx.heading(
-                "Proyectos - Tabla Principal",
+                "Constants",
                 size="7",
                 color="#f1f5f9",
                 margin_bottom="1rem",

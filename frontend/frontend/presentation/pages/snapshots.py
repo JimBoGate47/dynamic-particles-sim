@@ -24,7 +24,7 @@ def snapshots() -> rx.Component:
         rx.vstack(
             rx.hstack(
                 rx.heading(
-                    "Snapshots",
+                    "Snapshot Collection",
                     size="7",
                     color="#f1f5f9",
                 ),
