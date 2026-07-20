@@ -122,6 +122,7 @@ def snapshots() -> rx.Component:
                 max_slider=SnapshotsState.max_slider,
                 on_slider_change=SnapshotsState.set_slider,
                 on_close=SnapshotsState.close_play_modal,
+                on_download=SnapshotsState.download_snapshot,
             ),
             json_modal(
                 title="Snapshots Collection",

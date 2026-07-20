@@ -110,6 +110,20 @@ class SnapshotsState(rx.State):
         self.show_play_modal = False
         self.slider_value = 0
 
+    @rx.event
+    async def download_snapshot(self):
+        if not self.snapshots:
+            return
+        current = self.snapshots.snapshots[self.slider_value]
+        if not current.id:
+            return
+        service = SimulatorService()
+        found = await service.snapshot_finder(current.id)
+        return rx.download(
+            data=found.model_dump_json(indent=2),
+            filename=f"snapshot_{found.step}.json",
+        )
+
     def open_modal(self, batch_id: str):
         for col in self.collections:
             if col.batch_id == batch_id:

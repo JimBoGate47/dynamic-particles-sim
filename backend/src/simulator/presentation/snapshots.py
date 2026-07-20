@@ -6,7 +6,17 @@ from src.common.domain.filters.snapshot import SnapshotsFilter
 from src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
+from src.simulator.applitacion.use_cases.snapshot_finder import SnapshotFinderById
 from src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
+
+
+async def get_snapshot(snapshot_id: str) -> dict | None:
+    async with db_connection():
+        snapshot = await SnapshotFinderById(
+            snapshot_id=snapshot_id,
+            orm_snapshot=ORMSnapshotRepository(),
+        ).execute()
+        return snapshot.model_dump(mode="json")
 
 
 async def list_snapshots(constants_name: str) -> list[dict]:

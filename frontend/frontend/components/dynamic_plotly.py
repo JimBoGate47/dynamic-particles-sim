@@ -15,6 +15,7 @@ def plotly_modal(
     max_slider: int,
     on_slider_change: Callable,
     on_close: Callable,
+    on_download: Callable | None = None,
 ) -> rx.Component:
     return rx.dialog.root(
         rx.dialog.content(
@@ -56,6 +57,14 @@ def plotly_modal(
                         width="100%",
                     ),
                     rx.text(max_slider, font_size="0.75rem", color="#94a3b8"),
+                    rx.button(
+                        rx.icon("download"),
+                        "Descargar",
+                        size="1",
+                        variant="soft",
+                        color_scheme="blue",
+                        on_click=on_download,
+                    ),
                     spacing="2",
                     width="100%",
                     align="center",
