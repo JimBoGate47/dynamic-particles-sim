@@ -3,12 +3,13 @@ import json
 import plotly.graph_objects as go
 import reflex as rx
 from loguru import logger
+from pydantic import ValidationError
 
-from frontend.domain.types.snapshots import SnapshotsCollection
+from frontend.domain.types.snapshots import Particle, SnapshotsCollection
 from frontend.infrastructure.simulator import SimulatorService
 
 SIMULATION_COLUMNS = [
-    {"key": "meta_id", "header": "META-ID"},
+    {"key": "batch_id", "header": "Batch ID"},
 ]
 
 
@@ -81,16 +82,24 @@ def _build_figure(
 
 
 class SnapshotsState(rx.State):
+    collections: list[SnapshotsCollection] = []
     snapshots: SnapshotsCollection | None = None
     show_play_modal: bool = False
     show_json_modal: bool = False
+    show_new_modal: bool = False
     selected_row: SnapshotsCollection | None = None
     slider_value: int = 0
+    new_snapshot_raw: str = ""
+    _current_constants_id: str = ""
+    _current_constants_name: str = ""
 
-    async def load_current_snapshot(self, constants_name: str):
+    async def load_current_snapshot(self, constants_name: str, constants_id: str = ""):
         logger.info("Loading snapshots for {}", constants_name)
+        self._current_constants_name = constants_name
+        self._current_constants_id = constants_id
         service = SimulatorService()
-        self.snapshots = await service.snapshot_lister(constants_name)
+        self.collections = await service.snapshot_lister(constants_name)
+        self.snapshots = self.collections[0] if self.collections else None
         return rx.redirect("/snapshots")
 
     def open_play_modal(self, _: str = ""):
@@ -101,10 +110,12 @@ class SnapshotsState(rx.State):
         self.show_play_modal = False
         self.slider_value = 0
 
-    def open_modal(self, meta_id: str):
-        if self.snapshots is None or self.snapshots.meta_id != meta_id:
-            return
-        self.selected_row = self.snapshots
+    def open_modal(self, batch_id: str):
+        for col in self.collections:
+            if col.batch_id == batch_id:
+                self.selected_row = col
+                self.snapshots = col
+                break
         self.show_json_modal = True
 
     def close_modal(self):
@@ -114,6 +125,64 @@ class SnapshotsState(rx.State):
     def set_slider(self, value: int | str):
         v = int(value)
         self.slider_value = max(0, min(v, self.max_slider))
+
+    def set_new_snapshot_raw(self, new_value: str):
+        self.new_snapshot_raw = new_value
+
+    def open_new_modal(self):
+        self.new_snapshot_raw = json.dumps({
+            "step": 0,
+            "constants_id": self._current_constants_id,
+            "particles": [],
+        }, indent=2)
+        self.show_new_modal = True
+
+    def close_new_modal(self):
+        self.show_new_modal = False
+        self.new_snapshot_raw = ""
+
+    async def handle_upload(self, files: list[rx.UploadFile]):
+        for file in files:
+            content = await file.read()
+            try:
+                particles_data = json.loads(content)
+                for p in particles_data:
+                    Particle.model_validate(p)
+                current = json.loads(self.new_snapshot_raw)
+                current["particles"] = particles_data
+                self.new_snapshot_raw = json.dumps(current, indent=2)
+            except Exception as e:
+                yield rx.toast.error(f"Error al cargar JSON: {e}")
+
+    @rx.event
+    async def save_new_snapshot(self):
+        try:
+            data = json.loads(self.new_snapshot_raw)
+        except json.JSONDecodeError as e:
+            yield rx.toast.error(f"JSON inválido: {e}")
+            return
+
+        data.pop("id", None)
+        for p in data.get("particles", []):
+            try:
+                Particle.model_validate(p)
+            except ValidationError as e:
+                yield rx.toast.error(f"Partícula inválida: {e}")
+                return
+
+        service = SimulatorService()
+        try:
+            created = await service.snapshot_creator(data)
+        except Exception as e:
+            yield rx.toast.error(f"Error al guardar: {e}")
+            return
+
+        self.close_new_modal()
+        yield rx.toast.success(f"Snapshot (step={created.step}) creado")
+
+        if self._current_constants_name:
+            self.collections = await service.snapshot_lister(self._current_constants_name)
+            self.snapshots = self.collections[0] if self.collections else None
 
     @rx.var(cache=True)
     def max_slider(self) -> int:
@@ -131,7 +200,7 @@ class SnapshotsState(rx.State):
             return ""
         return json.dumps(
             {
-                "meta_id": self.selected_row.meta_id,
+                "batch_id": self.selected_row.batch_id,
                 "steps": self.selected_row.steps,
             },
             indent=2,

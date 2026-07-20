@@ -1,2 +1,2 @@
 from .constants import Constants
-from .snapshot import Snapshot, Particle
+from .snapshot import Particle, Snapshot, SnapshotsCollection

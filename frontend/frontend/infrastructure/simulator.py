@@ -3,7 +3,7 @@ from loguru import logger
 from frontend.domain.types.constants import Constants
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
 from src.simulator.presentation.constants import create_constants, find_constants
-from src.simulator.presentation.snapshots import list_snapshots
+from src.simulator.presentation.snapshots import create_snapshot, list_snapshots
 
 
 class SimulatorService:
@@ -14,18 +14,20 @@ class SimulatorService:
             for response in responses
         ]
 
-    async def snapshot_lister(self, constants_name: str) -> SnapshotsCollection:
-        logger.info("Fetching {} snapshots", constants_name)
+    async def snapshot_lister(self, constants_name: str) -> list[SnapshotsCollection]:
+        logger.info("Fetching snapshots for {}", constants_name)
         responses = await list_snapshots(constants_name)
-        logger.info("Received {} snapshots", len(responses))
+        logger.info("Received {} collections", len(responses))
 
-        collection = SnapshotsCollection(
-            snapshots=[
-                Snapshot.model_validate(response)
-                for response in responses
-            ]
-        )
-        return collection
+        return [
+            SnapshotsCollection.model_validate(response)
+            for response in responses
+        ]
+
+    async def snapshot_creator(self, data: dict) -> Snapshot:
+        logger.info("Creating snapshot with step={}", data.get("step"))
+        response = await create_snapshot(data)
+        return Snapshot.model_validate(response)
 
     async def constants_creator(self, data: dict) -> Constants:
         logger.info("Creating constants with name={}", data.get("name"))

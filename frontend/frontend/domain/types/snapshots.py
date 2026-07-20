@@ -1,6 +1,4 @@
-from uuid import uuid4
-
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, computed_field
 
 from frontend.domain.types.constants import Constants
 
@@ -17,10 +15,11 @@ class Snapshot(BaseModel):
     step: int
     constants: Constants
     particles: list[Particle]
+    batch_id: str
 
 
 class SnapshotsCollection(BaseModel):
-    meta_id: str = Field(default_factory=lambda: str(uuid4()))
+    batch_id: str
     snapshots: list[Snapshot]
 
     @computed_field

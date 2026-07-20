@@ -10,7 +10,7 @@ _ACTION_BUTTONS = [
         "icon": "arrow-right",
         "tooltip": "Ver detalle",
         "color_scheme": "blue",
-        "on_click": lambda row: SnapshotsState.load_current_snapshot(row.name),
+        "on_click": lambda row: SnapshotsState.load_current_snapshot(row.name, row.id),
     },
 ]
 

@@ -13,4 +13,5 @@ def build_snapshot(snapshot: SnapshotORM) -> Snapshot:
             if isinstance(snapshot.constants, ConstantsORM) else None
         ),
         particles=snapshot.particles,
+        batch_id=snapshot.batch_id,
     )

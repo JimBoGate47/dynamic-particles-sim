@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 
 from bson import ObjectId
@@ -15,17 +16,21 @@ class SnapshotBuilder(UseCase):
     constants_id: ObjectId
     particles: list[Particle]
     orm_snapshot: SnapshotRepository
+    batch_id: str | None = None
     orm_constants: ConstantsRepository | None = None
 
     async def execute(self, *args, **kwargs) -> Snapshot | None:
         constants = await self.orm_constants.find_by_id(self.constants_id)
         if not constants:
-            raise ValueError(f"No se encontraro constants: {str(self.constants_id)}")
+            raise ValueError(f"No se encontraron constants: {str(self.constants_id)}")
+
+        batch_id_val = self.batch_id if self.batch_id else str(uuid.uuid4())
 
         return await self.orm_snapshot.persist(
             Snapshot(
                 step=self.step,
                 constants=constants,
-                particles=self.particles
+                particles=self.particles,
+                batch_id=batch_id_val,
             )
         )

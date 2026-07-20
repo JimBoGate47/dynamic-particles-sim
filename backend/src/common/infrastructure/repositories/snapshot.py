@@ -2,13 +2,16 @@ from typing import List, Optional
 
 from beanie import PydanticObjectId
 
-from src.common.domain.entities import Snapshot
+from src.common.domain.entities import Snapshot, SnapshotsCollection
 from src.common.domain.entities.particle import Particle
 from src.common.domain.filters.snapshot import SnapshotsFilter
 from src.common.domain.models.constants import ConstantsORM
 from src.common.domain.models.snapshot import SnapshotORM
 from src.common.domain.repositories.snapshot import SnapshotRepository
 from src.common.infrastructure.builders.snapshot import build_snapshot
+
+
+
 
 
 class ORMSnapshotRepository(SnapshotRepository):
@@ -20,6 +23,8 @@ class ORMSnapshotRepository(SnapshotRepository):
             filters["step"] = params.step
         if params.constants_name:
             filters["constants.name"] = params.constants_name
+        if params.batch_id:
+            filters["batch_id"] = params.batch_id
 
         if not filters:
             return None
@@ -76,6 +81,7 @@ class ORMSnapshotRepository(SnapshotRepository):
             step=snapshot.step,
             constants=constant_orm,
             particles=snapshot.particles,
+            batch_id=snapshot.batch_id,
         )
         await snapshot_orm.insert()
         return build_snapshot(snapshot_orm)
@@ -86,6 +92,7 @@ class ORMSnapshotRepository(SnapshotRepository):
             step=snapshot.step,
             constants=constant_orm,
             particles=snapshot.particles,
+            batch_id=snapshot.batch_id,
         )
         await snapshot_orm.insert()
         return build_snapshot(snapshot_orm)

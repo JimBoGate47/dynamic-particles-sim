@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 
 import torch
 
@@ -63,6 +64,7 @@ async def main():
             orm_constants=ORMConstantsRepository(),
         ).execute()
 
+        batch_id = str(uuid.uuid4())
         for _ in range(506):
             particles_system: ParticleSystem2D = build_particles_2d(ps)
             if ps.step in [100, 200, 300, 400, 500]:
@@ -70,6 +72,7 @@ async def main():
                     step=ps.step,
                     constants_id=constants.id_object,
                     particles=particles_system.particles,
+                    batch_id=batch_id,
                     orm_snapshot=ORMSnapshotRepository(),
                     orm_constants=ORMConstantsRepository(),
                 ).execute()

@@ -7,3 +7,4 @@ class SnapshotsFilter:
     step: Optional[int] = None
     constants_name: Optional[str] = None
     snapshot_id: Optional[str] = None
+    batch_id: Optional[str] = None
