@@ -1,42 +1,52 @@
+import json
 import math
-import reflex as rx
+
 import plotly.graph_objects as go
+import reflex as rx
 
-
-SIMULATIONS = [
-    {"id": "EXP-001", },
-]
-
+from frontend.domain.types.snapshots import SnapshotsCollection
+from frontend.infrastructure.simulator import SimulatorService
 
 SIMULATION_COLUMNS = [
-    {"key": "id", "header": "ID"},
+    {"key": "meta_id", "header": "META-ID"},
 ]
-
 
 _DATA_X = [round(i * 0.2, 1) for i in range(60)]
 _DATA_Y1 = [round(5 * math.sin(2 * math.pi * 0.5 * t) + (hash(str(t)) % 100) / 100 * 0.4 - 0.2, 2) for t in _DATA_X]
-_DATA_Y2 = [round(3 * math.cos(2 * math.pi * 0.3 * t) + (hash(str(t * 2)) % 100) / 100 * 0.3 - 0.15, 2) for t in _DATA_X]
+_DATA_Y2 = [round(3 * math.cos(2 * math.pi * 0.3 * t) + (hash(str(t * 2)) % 100) / 100 * 0.3 - 0.15, 2) for t in
+            _DATA_X]
 _MAX_IDX = len(_DATA_X) - 1
 
 
 class SnapshotsState(rx.State):
-    experiments: list[dict] = SIMULATIONS
-    show_modal: bool = False
-    selected_experiment: dict = {}
+    snapshots: SnapshotsCollection | None = None
+    show_play_modal: bool = False
+    show_json_modal: bool = False
+    selected_row: SnapshotsCollection | None = None
     slider_value: int = 0
 
-    def open_play_modal(self, exp_id: str):
-        for exp in self.experiments:
-            if exp["id"] == exp_id:
-                self.selected_experiment = exp
-                break
+    async def load_current_snapshot(self, constants_name: str):
+        service = SimulatorService()
+        self.snapshots = await service.snapshot_lister(constants_name)
+        return rx.redirect("/snapshots")
+
+    def open_play_modal(self, _: str = ""):
         self.slider_value = 0
-        self.show_modal = True
+        self.show_play_modal = True
 
     def close_play_modal(self):
-        self.show_modal = False
-        self.selected_experiment = {}
+        self.show_play_modal = False
         self.slider_value = 0
+
+    def open_modal(self, meta_id: str):
+        if self.snapshots is None or self.snapshots.meta_id != meta_id:
+            return
+        self.selected_row = self.snapshots
+        self.show_json_modal = True
+
+    def close_modal(self):
+        self.show_json_modal = False
+        self.selected_row = None
 
     def set_slider(self, value: int | str):
         v = int(value)
@@ -51,12 +61,28 @@ class SnapshotsState(rx.State):
         return self.slider_value
 
     @rx.var(cache=True)
+    def selected_json(self) -> str:
+        if self.selected_row is None:
+            return ""
+        return json.dumps(
+            {
+                "meta_id": self.selected_row.meta_id,
+                "steps": self.selected_row.steps,
+            },
+            indent=2,
+        )
+
+    @rx.var(cache=True)
     def figure_json(self) -> dict:
         n = self.slider_value + 1
         x = _DATA_X[:n]
         y1 = _DATA_Y1[:n]
         y2 = _DATA_Y2[:n]
-        exp_name = self.selected_experiment.get("name", "Experimento")
+        exp_name = (
+            self.snapshots.snapshots[0].constants.name
+            if self.snapshots and self.snapshots.snapshots
+            else "Simulacion"
+        )
 
         fig = go.Figure()
         fig.add_trace(

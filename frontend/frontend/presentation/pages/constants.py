@@ -3,13 +3,14 @@ import reflex as rx
 from frontend.components.data_table import data_table
 from frontend.components.json_modal import json_modal
 from frontend.states.constants_state import ConstantsState, COLUMNS
+from frontend.states.snapshots_state import SnapshotsState
 
 _ACTION_BUTTONS = [
     {
         "icon": "arrow-right",
         "tooltip": "Ver detalle",
         "color_scheme": "blue",
-        "on_click": lambda row: rx.redirect("/snapshots"),
+        "on_click": lambda row: SnapshotsState.load_current_snapshot(row.name),
     },
 ]
 

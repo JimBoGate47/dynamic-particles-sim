@@ -1,7 +1,7 @@
-import asyncio
-
 from frontend.domain.types.constants import Constants
+from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
 from src.simulator.presentation.constants import find_constants
+from src.simulator.presentation.snapshots import list_snapshots
 
 
 class SimulatorService:
@@ -12,8 +12,11 @@ class SimulatorService:
             for response in responses
         ]
 
-
-if __name__ == '__main__':
-    service = SimulatorService()
-    res = asyncio.run(service.constants_finder())
-    print(res)
+    async def snapshot_lister(self, constants_name: str) -> SnapshotsCollection:
+        responses = await list_snapshots(constants_name)
+        return SnapshotsCollection(
+            snapshots=[
+                Snapshot.model_validate(response)
+                for response in responses
+            ]
+        )
