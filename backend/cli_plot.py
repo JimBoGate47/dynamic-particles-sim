@@ -1,7 +1,8 @@
 import asyncio
+from itertools import chain
 from pprint import pprint
 
-from src.common.domain.entities import Snapshot
+from src.common.domain.entities import Snapshot, SnapshotsCollection
 from src.common.domain.filters.snapshot import SnapshotsFilter
 from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
@@ -12,14 +13,15 @@ from plotting.plot_particles2 import plot_data
 
 async def main():
     async with db_connection():
-        snapshots: list[Snapshot] = await SnapshotsLister(
+        collections: list[SnapshotsCollection] = await SnapshotsLister(
             filters=SnapshotsFilter(
                 constants_name="nombre3",
             ),
             snapshot_repository=ORMSnapshotRepository(),
         ).execute()
-        if not snapshots:
+        if not collections:
             raise ValueError("No snapshots found")
+        snapshots = list(chain.from_iterable(c.snapshots for c in collections))
         pprint(snapshots)
 
         snapshots_df = SnapshotsDataframePresenter(

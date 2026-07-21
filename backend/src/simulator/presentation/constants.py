@@ -1,7 +1,8 @@
-from config.database import db_connection
+from src.common.domain.entities.properties import SimulationProps
 from src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from src.simulator.applitacion.use_cases.constants_builder import ConstantsBuilder
 from src.simulator.applitacion.use_cases.constants_finder import ConstantsFinder
+from config.database import db_connection
 
 
 async def find_constants() -> list[dict]:
@@ -18,16 +19,22 @@ async def find_constants() -> list[dict]:
 
 async def create_constants(data: dict) -> dict:
     async with db_connection():
+        raw_sim = data.get("sim_props", data)
+        sim_props = SimulationProps(
+            g=raw_sim["g"],
+            k=raw_sim["k"],
+            dt=raw_sim["dt"],
+            min_vel=raw_sim.get("min_vel", 0),
+            r_confinement=raw_sim.get("r_confinement", 0),
+            k_confinement=raw_sim.get("k_confinement", 0),
+            beta=raw_sim.get("beta", 0),
+        )
         constants = await ConstantsBuilder(
             orm_constants=ORMConstantsRepository(),
             name=data["name"],
-            g=data["g"],
-            k=data["k"],
-            dt=data["dt"],
-            min_vel=data.get("min_vel", 0),
+            sim_props=sim_props,
             friction=data.get("friction", 0),
             confinement=data.get("confinement", "radial"),
-            r_confinement=data.get("r_confinement", 0),
             ruta=data.get("ruta", False),
             version=data.get("version", "v1"),
             barra_height=data.get("barra_height", 0),

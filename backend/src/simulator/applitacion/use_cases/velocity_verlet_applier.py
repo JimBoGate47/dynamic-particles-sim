@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import TypeVar, Generic
 
+from src.common.domain.entities.properties import SimulationProps
 from src.common.domain.interfaces import UseCase
 from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 from src.simulator.domain.interfaces import Interaction, SystemRestriction
@@ -17,6 +18,7 @@ T = TypeVar("T")
 @dataclass
 class VelocityVerletApplier(UseCase, Generic[T]):
     particle_system: ParticleSystem2DTensor
+    sim_props: SimulationProps
     interactions: Interaction
     restriction: SystemRestriction | None = None
 
@@ -24,13 +26,13 @@ class VelocityVerletApplier(UseCase, Generic[T]):
         half_vel = self.calculate_half_vel(
             vel=self.particle_system.vel,
             acc=self.particle_system.acc,
-            dt=self.particle_system.sim_props.dt,
+            dt=self.sim_props.dt,
         )
 
         new_pos = self.calculate_new_pos(
             pos=self.particle_system.pos,
             half_vel=half_vel,
-            dt=self.particle_system.sim_props.dt,
+            dt=self.sim_props.dt,
         )
         new_pos = self._in_place_position_restriction(
             old_positions=self.particle_system.pos,
@@ -40,8 +42,8 @@ class VelocityVerletApplier(UseCase, Generic[T]):
         response: GenericInteractionResponse = self.interactions.compute_aceleration(
             query=GenericInteractionQuery(
                 positions=new_pos,
-                velocity=half_vel,  # NOTE Opcion A: self.vel Opcion B: half_velocity (more accurate)
-                sim_props=self.particle_system.sim_props,
+                velocity=half_vel,
+                sim_props=self.sim_props,
                 phys_props=self.particle_system.phys_props,
             ),
         )
@@ -50,7 +52,7 @@ class VelocityVerletApplier(UseCase, Generic[T]):
         new_vel = self.calculate_new_vel(
             half_vel=half_vel,
             new_acc=new_acc,
-            dt=self.particle_system.sim_props.dt,
+            dt=self.sim_props.dt,
         )
 
         self.particle_system.update(

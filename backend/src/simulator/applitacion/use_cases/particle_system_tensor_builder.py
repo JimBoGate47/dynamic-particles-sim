@@ -11,6 +11,7 @@ from src.common.domain.interfaces import UseCase
 @dataclass
 class ParticleSystemTensorBuilderById(UseCase, SnapshotFinderMixin):
     sim_props: SimulationProps
+    fetch_links: bool = False
 
     async def execute(self, *args, **kwargs) -> ParticleSystem2DTensor:
         snapshot: Snapshot = await self.find_by_id()
@@ -22,5 +23,4 @@ class ParticleSystemTensorBuilderById(UseCase, SnapshotFinderMixin):
             vel=system_tensor.vel,
             acc=system_tensor.acc,
             phys_props=system_tensor.phys_props,
-            sim_props=self.sim_props,
         )

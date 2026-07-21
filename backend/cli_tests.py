@@ -24,20 +24,20 @@ async def main():
     RADIO = 6.0
     N_PARTICLES = 3
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    sim_props = SimulationProps(
+        g=9,
+        k=2,
+        min_vel=0,
+        r_confinement=RADIO,
+        k_confinement=0.5,
+        beta=0.8,
+        dt=0.1,
+    )
     ps = ParticleSystem2DTensor(
         pos=ParticleSystem2DTensor.initialize_particles_in_circle(
             n_particles=N_PARTICLES,
             R=4,
             device=device,
-        ),
-        sim_props=SimulationProps(
-            g=9,
-            k=2,
-            min_vel=0,
-            r_confinement=RADIO,
-            k_confinement=0.5,
-            beta=0.8,
-            dt=0.1,
         ),
         phys_props=PhysicalProps.from_charges(
             n_particles=N_PARTICLES,
@@ -49,6 +49,7 @@ async def main():
         for _ in range(3):
             await VelocityVerletApplier(
                 particle_system=ps,
+                sim_props=sim_props,
                 interactions=interactions,
             ).execute()
             particles_system: ParticleSystem2D = build_particles_2d(ps)

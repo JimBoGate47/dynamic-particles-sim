@@ -4,7 +4,7 @@ from typing import Optional
 
 import torch
 
-from src.common.domain.entities.properties import SimulationProps, PhysicalProps
+from src.common.domain.entities.properties import PhysicalProps
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -19,7 +19,6 @@ class System2DTensor:
 
 @dataclass
 class ParticleSystem2DTensor(System2DTensor):
-    sim_props: SimulationProps | None = None
     step: Optional[int] = 0
 
     def __post_init__(self):
@@ -100,15 +99,6 @@ if __name__ == "__main__":
             n_particles=N_PARTICLES,
             R=RADIO,
             device=device,
-        ),
-        sim_props=SimulationProps(
-            r_confinement=RADIO,
-            beta=0.0,
-            dt=1.0,
-            g=9.8,
-            k=1.0,
-            min_vel=0.0,
-            k_confinement=0.0,
         ),
         phys_props=PhysicalProps(
             q=torch.full((N_PARTICLES, 1), 2.0, device=device),

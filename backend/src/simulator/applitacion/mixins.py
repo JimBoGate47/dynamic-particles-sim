@@ -8,7 +8,7 @@ from src.common.domain.repositories.snapshot import SnapshotRepository
 class SnapshotFinderMixin(object):
     snapshot_id: str
     orm_snapshot: SnapshotRepository
-    fetch_links: bool = False
+    fetch_links: bool
 
     async def find_by_id(self) -> Snapshot | None:
         return await self.orm_snapshot.find_by_id(

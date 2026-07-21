@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from src.common.domain.entities import Constants
+from src.common.domain.entities.properties import SimulationProps
 from src.common.domain.interfaces import UseCase
 from src.common.domain.repositories.constants import ConstantsRepository
 
@@ -9,13 +10,9 @@ from src.common.domain.repositories.constants import ConstantsRepository
 class ConstantsBuilder(UseCase):
     orm_constants: ConstantsRepository
     name: str
-    g: float
-    k: float
-    dt: float
-    min_vel: float
+    sim_props: SimulationProps
     friction: float = 0
     confinement: str = "radial"
-    r_confinement: float = 0
     ruta: bool = False
     version: str = "v1"
     barra_height: float = 0
@@ -24,13 +21,9 @@ class ConstantsBuilder(UseCase):
     async def execute(self, *args, **kwargs) -> Constants:
         constants = Constants(
             name=self.name,
-            g=self.g,
-            k=self.k,
-            dt=self.dt,
-            min_vel=self.min_vel,
+            sim_props=self.sim_props,
             friction=self.friction,
             confinement=self.confinement,
-            r_confinement=self.r_confinement,
             ruta=self.ruta,
             version=self.version,
             barra_height=self.barra_height,

@@ -16,13 +16,17 @@ COLUMNS = [
 
 _NEW_DEFAULTS = {
     "name": "",
-    "g": 0,
-    "k": 0,
-    "dt": 0,
-    "min_vel": 0,
+    "sim_props": {
+        "g": 0,
+        "k": 0,
+        "dt": 0,
+        "min_vel": 0,
+        "k_confinement": 0,
+        "beta": 0,
+        "r_confinement": 0,
+    },
     "friction": 0,
     "confinement": "radial",
-    "r_confinement": 0,
     "ruta": False,
     "version": "v1",
     "barra_height": 0,

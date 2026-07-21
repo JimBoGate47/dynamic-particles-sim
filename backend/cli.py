@@ -1,23 +1,22 @@
 import asyncio
 import uuid
 
-import torch
-
+from config.database import db_connection
 from src.common.domain.entities.particle_system import ParticleSystem2D
-from src.common.domain.entities.properties import PhysicalProps, SimulationProps
+from src.common.domain.entities.properties import SimulationProps
 from src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from src.simulator.applitacion.use_cases.constants_builder import ConstantsBuilder
+from src.simulator.applitacion.use_cases.particle_system_2d_builder import ParticleSystem2DBuilder
 from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
-from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
-from src.simulator.infrastructure.builders.particle_system import build_particles_2d
+from src.simulator.domain.constants import DeviceType
+from src.simulator.infrastructure.builders.particle_system import build_particles_2d, build_particles_2d_tensor
 from src.simulator.infrastructure.interaction import (
     PairElectrostaticInteraction,
     PotencialWallInteractionDecorator,
     FrictionInteractionDecorator,
 )
-from config.database import db_connection
 
 interactions = PairElectrostaticInteraction()
 interactions = PotencialWallInteractionDecorator(interactions)
@@ -27,40 +26,25 @@ interactions_plus_friction = FrictionInteractionDecorator(interactions)
 async def main():
     RADIO = 6.0
     N_PARTICLES = 32
-    device = torch.device(
-        'cpu'
-        # if torch.cuda.is_available()
-        # else 'cpu'
+    sim_props = SimulationProps(
+        g=9,
+        k=10,
+        min_vel=0,
+        r_confinement=RADIO,
+        k_confinement=0.5,
+        beta=0.6,
+        dt=0.1,
     )
-    ps = ParticleSystem2DTensor(
-        pos=ParticleSystem2DTensor.initialize_particles_in_circle(
-            n_particles=N_PARTICLES,
-            R=RADIO,
-            device=device,
-        ),
-        sim_props=SimulationProps(
-            g=9,
-            k=10,
-            min_vel=0,
-            r_confinement=RADIO,
-            k_confinement=0.5,
-            beta=0.6,
-            dt=0.1,
-        ),
-        phys_props=PhysicalProps.from_charges(
-            n_particles=N_PARTICLES,
-            charges=[1.0],
-            device=device,
-        )
-    )
+    ps_domain = await ParticleSystem2DBuilder(
+        n_particles=N_PARTICLES,
+        R=RADIO,
+        device=DeviceType.CPU,
+    ).execute()
+    ps = build_particles_2d_tensor(ps_domain, device=DeviceType.CPU)
     async with db_connection():
-        # TODO construir a partir de SimulationProps
         constants = await ConstantsBuilder(
             name="nombre3",
-            g=ps.sim_props.g,
-            k=ps.sim_props.k,
-            dt=ps.sim_props.dt,
-            min_vel=ps.sim_props.min_vel,
+            sim_props=sim_props,
             orm_constants=ORMConstantsRepository(),
         ).execute()
 
@@ -79,6 +63,7 @@ async def main():
                 print(snap)
             await VelocityVerletApplier(
                 particle_system=ps,
+                sim_props=sim_props,
                 interactions=interactions_plus_friction,
             ).execute()
 

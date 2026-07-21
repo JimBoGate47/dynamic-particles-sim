@@ -1,16 +1,13 @@
 from src.common.domain.entities.base import CustomBaseModel
+from src.common.domain.entities.properties import SimulationProps
 
 
 class Constants(CustomBaseModel):
     id: str | None = None
     name: str
-    g: float
-    k: float
-    dt: float
-    min_vel: float = 0
+    sim_props: SimulationProps
     friction: float = 0
     confinement: str = "radial"
-    r_confinement: float = 0
     ruta: bool = False
     version: str = "v1"
     barra_height: float = 0
@@ -20,13 +17,13 @@ class Constants(CustomBaseModel):
         return {
             "id": self.id,
             "name": self.name,
-            "g": self.g,
-            "k": self.k,
-            "dt": self.dt,
-            "min_vel": self.min_vel,
+            "g": self.sim_props.g,
+            "k": self.sim_props.k,
+            "dt": self.sim_props.dt,
+            "min_vel": self.sim_props.min_vel,
             "friction": self.friction,
             "confinement": self.confinement,
-            "r_confinement": self.r_confinement,
+            "r_confinement": self.sim_props.r_confinement,
             "ruta": self.ruta,
             "version": self.version,
             "barra_height": self.barra_height,
