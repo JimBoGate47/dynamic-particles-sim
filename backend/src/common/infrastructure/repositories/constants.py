@@ -30,14 +30,10 @@ class ORMConstantsRepository(ConstantsRepository):
     async def persist(self, constant: Constants) -> Constants:
         constants = ConstantsORM(
             name=constant.name,
-            g=constant.sim_props.g,
-            k=constant.sim_props.k,
-            min_vel=constant.sim_props.min_vel,
+            sim_props=constant.sim_props,
             friction=constant.friction,
-            ruta=constant.ruta,
-            dt=constant.sim_props.dt,
             confinement=constant.confinement,
-            r_confinement=constant.sim_props.r_confinement,
+            ruta=constant.ruta,
             version=constant.version,
             barra_height=constant.barra_height,
             barra_qlamb=constant.barra_qlamb,

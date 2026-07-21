@@ -48,11 +48,19 @@ cd dynamic-particles-sim
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-3. Sincronizar dependencias (instala dependencias del backend + frontend):
+3. Sincronizar dependencias (backend + frontend):
 
 ```bash
 uv sync --all-packages
 ```
+
+> Si tu GPU no es compatible con CUDA 12.6, reemplaza el index de torch en `pyproject.toml`:
+> ```toml
+> # Para CPU
+> url = "https://download.pytorch.org/whl/cpu"
+> # Para otra versión CUDA
+> url = "https://download.pytorch.org/whl/cuXXX"
+> ```
 
 4. Activar el entorno virtual:
 

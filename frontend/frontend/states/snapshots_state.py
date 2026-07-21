@@ -99,12 +99,36 @@ class SnapshotsState(rx.State):
         self._current_constants_id = constants_id
         service = SimulatorService()
         self.collections = await service.snapshot_lister(constants_name)
-        self.snapshots = self.collections[0] if self.collections else None
+        self.snapshots = self.collections[-1] if self.collections else None
         return rx.redirect("/snapshots")
 
-    def open_play_modal(self, _: str = ""):
+    def open_play_modal(self, batch_id: str = ""):
         self.slider_value = 0
+        for col in self.collections:
+            if col.batch_id == batch_id:
+                self.snapshots = col
+                break
         self.show_play_modal = True
+
+    @rx.event
+    async def run_simulation(self, batch_id: str):
+        service = SimulatorService()
+        try:
+            col = next((c for c in self.collections if c.batch_id == batch_id), None)
+            if not col or not col.snapshots:
+                yield rx.toast.error("No snapshots in collection")
+                return
+            snapshot = col.snapshots[-1]
+            snapshots = await service.simulation_runner(
+                snapshot_id=snapshot.id,
+            )
+            yield rx.toast.success(f"Simulación completada: {len(snapshots)} snapshots")
+            yield await self.load_current_snapshot(
+                self._current_constants_name,
+                self._current_constants_id,
+            )
+        except Exception as e:
+            yield rx.toast.error(f"Error en simulación: {e}")
 
     def close_play_modal(self):
         self.show_play_modal = False
@@ -196,7 +220,7 @@ class SnapshotsState(rx.State):
 
         if self._current_constants_name:
             self.collections = await service.snapshot_lister(self._current_constants_name)
-            self.snapshots = self.collections[0] if self.collections else None
+            self.snapshots = self.collections[-1] if self.collections else None
 
     @rx.var(cache=True)
     def max_slider(self) -> int:

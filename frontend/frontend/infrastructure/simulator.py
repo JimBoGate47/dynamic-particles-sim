@@ -2,8 +2,21 @@ from loguru import logger
 
 from frontend.domain.types.constants import Constants
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
-from src.simulator.presentation.constants import create_constants, find_constants
-from src.simulator.presentation.snapshots import create_snapshot, get_snapshot, list_snapshots
+from src.simulator.presentation.constants import (
+    CreateConstantsRequest,
+    create_constants,
+    find_constants,
+)
+from src.simulator.presentation.snapshots import (
+    CreateSnapshotRequest,
+    GetSnapshotRequest,
+    ListSnapshotsRequest,
+    RunSimulationRequest,
+    create_snapshot,
+    get_snapshot,
+    list_snapshots,
+    run_simulation,
+)
 
 
 class SimulatorService:
@@ -16,7 +29,7 @@ class SimulatorService:
 
     async def snapshot_lister(self, constants_name: str) -> list[SnapshotsCollection]:
         logger.info("Fetching snapshots for {}", constants_name)
-        responses = await list_snapshots(constants_name)
+        responses = await list_snapshots(ListSnapshotsRequest(constants_name=constants_name))
         logger.info("Received {} collections", len(responses))
 
         return [
@@ -26,15 +39,29 @@ class SimulatorService:
 
     async def snapshot_finder(self, snapshot_id: str) -> Snapshot:
         logger.info("Fetching snapshot {}", snapshot_id)
-        response = await get_snapshot(snapshot_id)
+        response = await get_snapshot(GetSnapshotRequest(snapshot_id=snapshot_id))
         return Snapshot.model_validate(response)
 
     async def snapshot_creator(self, data: dict) -> Snapshot:
         logger.info("Creating snapshot with step={}", data.get("step"))
-        response = await create_snapshot(data)
+        response = await create_snapshot(CreateSnapshotRequest(**data))
         return Snapshot.model_validate(response)
+
+    async def simulation_runner(
+        self,
+        snapshot_id: str,
+        n_steps: int = 506,
+        record_steps: list[int] | None = None,
+    ) -> list[Snapshot]:
+        logger.info("Running simulation from snapshot {}", snapshot_id)
+        responses = await run_simulation(RunSimulationRequest(
+            snapshot_id=snapshot_id,
+            n_steps=n_steps,
+            record_steps=record_steps or [100, 200, 300, 400, 500],
+        ))
+        return [Snapshot.model_validate(r) for r in responses]
 
     async def constants_creator(self, data: dict) -> Constants:
         logger.info("Creating constants with name={}", data.get("name"))
-        response = await create_constants(data)
+        response = await create_constants(CreateConstantsRequest(**data))
         return Constants.model_validate(response)

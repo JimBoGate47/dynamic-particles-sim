@@ -7,10 +7,16 @@ from frontend.states.snapshots_state import SnapshotsState, SIMULATION_COLUMNS
 
 _PLAY_BUTTONS = [
     {
-        "icon": "play",
+        "icon": "eye",
         "tooltip": "Explorar datos",
         "color_scheme": "green",
         "on_click": lambda row: lambda: SnapshotsState.open_play_modal(row.batch_id),
+    },
+    {
+        "icon": "play",
+        "tooltip": "Ejecutar simulación",
+        "color_scheme": "blue",
+        "on_click": lambda row: lambda: SnapshotsState.run_simulation(row.batch_id),
     },
 ]
 

@@ -45,6 +45,7 @@ class Snapshot(CustomBaseModel):
         ]
 
 
+# TODO mover a presenters
 class SnapshotsCollection(BaseModel):
     batch_id: str
     snapshots: list[Snapshot]

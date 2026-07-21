@@ -1,22 +1,14 @@
 from beanie import Document, Indexed
 
+from src.common.domain.entities.properties import SimulationProps
+
 
 class ConstantsORM(Document):
     name: Indexed(str, unique=True)
-    g: float
-    k: float
-    dt: float
-    min_vel: float
+    sim_props: SimulationProps
     friction: float = 0
-    confinement: str = 0
-    r_confinement: float = 0
+    confinement: str = "radial"
     ruta: bool = False
     version: str = "v1"
     barra_height: float = 0
     barra_qlamb: float = 0
-
-    @property
-    def to_dict(self) -> dict:
-        return {
-
-        }

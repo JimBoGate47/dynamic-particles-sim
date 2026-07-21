@@ -29,7 +29,7 @@ class ORMSnapshotRepository(SnapshotRepository):
         if not filters:
             return None
 
-        snapshots = await SnapshotORM.find(filters, fetch_links=True).to_list()
+        snapshots = await SnapshotORM.find(filters, fetch_links=True).sort(SnapshotORM.step).to_list()
 
         return [build_snapshot(snapshot) for snapshot in snapshots]
 
