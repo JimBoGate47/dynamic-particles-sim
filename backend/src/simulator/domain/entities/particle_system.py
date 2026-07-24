@@ -19,7 +19,7 @@ class System2DTensor:
 
 @dataclass
 class ParticleSystem2DTensor(System2DTensor):
-    step: Optional[int] = 0
+    step: int = 0
 
     def __post_init__(self):
         self.vel = self.vel if self.vel is not None else torch.zeros_like(self.pos)

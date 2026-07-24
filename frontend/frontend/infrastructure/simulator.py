@@ -51,13 +51,13 @@ class SimulatorService:
         self,
         snapshot_id: str,
         n_steps: int = 506,
-        record_steps: list[int] | None = None,
+        save_at_mod: int = 100,
     ) -> list[Snapshot]:
         logger.info("Running simulation from snapshot {}", snapshot_id)
         responses = await run_simulation(RunSimulationRequest(
             snapshot_id=snapshot_id,
             n_steps=n_steps,
-            record_steps=record_steps or [100, 200, 300, 400, 500],
+            save_at_mod=save_at_mod,
         ))
         return [Snapshot.model_validate(r) for r in responses]
 

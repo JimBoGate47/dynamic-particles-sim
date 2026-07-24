@@ -15,7 +15,7 @@ COLUMNS = [
 ]
 
 _NEW_DEFAULTS = {
-    "name": "",
+    "name": "simulacion-test",
     "sim_props": {
         "g": 9,
         "k": 10,

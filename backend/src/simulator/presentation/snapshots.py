@@ -47,7 +47,7 @@ class CreateSnapshotRequest(BaseModel):
 class RunSimulationRequest(BaseModel):
     snapshot_id: str
     n_steps: int = 506
-    record_steps: list[int] = [100, 200, 300, 400, 500]
+    save_at_mod: int = 100
 
 
 async def get_snapshot(req: GetSnapshotRequest) -> dict | None:
@@ -106,6 +106,6 @@ async def run_simulation(req: RunSimulationRequest) -> list[dict]:
             fetch_links=True,
             interactions=interactions,
             n_steps=req.n_steps,
-            record_steps=set(req.record_steps),
+            save_at_mod=req.save_at_mod,
         ).execute()
         return [s.model_dump(mode="json") for s in snapshots]
