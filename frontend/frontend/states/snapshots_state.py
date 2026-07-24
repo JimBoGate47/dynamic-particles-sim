@@ -5,7 +5,7 @@ import reflex as rx
 from loguru import logger
 from pydantic import ValidationError
 
-from frontend.domain.types.snapshots import Particle, SnapshotsCollection
+from frontend.domain.types.snapshots import Particle, Snapshot, SnapshotsCollection
 from frontend.infrastructure.simulator import SimulatorService
 
 SIMULATION_COLUMNS = [
@@ -179,16 +179,23 @@ class SnapshotsState(rx.State):
         self.show_new_modal = False
         self.new_snapshot_raw = ""
 
-    async def handle_upload(self, files: list[rx.UploadFile]):
+    async def upload_snapshot(self, files: list[rx.UploadFile]):
         for file in files:
             content = await file.read()
             try:
-                particles_data = json.loads(content)
-                for p in particles_data:
-                    Particle.model_validate(p)
-                current = json.loads(self.new_snapshot_raw)
-                current["particles"] = particles_data
-                self.new_snapshot_raw = json.dumps(current, indent=2)
+                data = json.loads(content)
+                Snapshot.model_validate(data)
+
+                data.pop("id", None)
+                data.pop("batch_id", None)
+                data.pop("constants", None)
+
+                self.new_snapshot_raw = json.dumps(data, indent=2)
+
+            except ValidationError as e:
+                yield rx.toast.error(
+                    f"JSON inválido: debe ser un Snapshot válido — {e}"
+                )
             except Exception as e:
                 yield rx.toast.error(f"Error al cargar JSON: {e}")
 
@@ -196,11 +203,11 @@ class SnapshotsState(rx.State):
     async def save_new_snapshot(self):
         try:
             data = json.loads(self.new_snapshot_raw)
+            data["constants_id"] = self._current_constants_id
         except json.JSONDecodeError as e:
             yield rx.toast.error(f"JSON inválido: {e}")
             return
 
-        data.pop("id", None)
         for p in data.get("particles", []):
             try:
                 Particle.model_validate(p)

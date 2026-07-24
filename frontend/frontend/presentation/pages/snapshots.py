@@ -46,11 +46,11 @@ def _new_modal() -> rx.Component:
                 rx.upload(
                     rx.button(
                         rx.icon("upload"),
-                        "Cargar JSON",
+                        "Cargar Snapshot",
                         color_scheme="blue",
                         variant="soft",
                     ),
-                    on_drop=SnapshotsState.handle_upload,
+                    on_drop=SnapshotsState.upload_snapshot,
                     accept={".json": ["application/json"]},
                     max_files=1,
                     multiple=False,
