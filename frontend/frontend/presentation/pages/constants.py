@@ -43,6 +43,7 @@ def _new_modal() -> rx.Component:
                             "Cancelar",
                             variant="soft",
                             color_scheme="gray",
+                            on_click=ConstantsState.close_new_modal,
                         ),
                     ),
                     rx.spacer(),

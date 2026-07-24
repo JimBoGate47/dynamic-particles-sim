@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class SimulationProps(BaseModel):
@@ -21,3 +21,9 @@ class Constants(BaseModel):
     version: str
     barra_height: float = 0
     barra_qlamb: float = 0
+
+    @model_validator(mode="after")
+    def _name_not_empty(self):
+        if not self.name:
+            raise ValueError("name no puede estar vacío")
+        return self
