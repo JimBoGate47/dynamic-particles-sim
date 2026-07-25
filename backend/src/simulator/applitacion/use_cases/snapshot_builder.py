@@ -1,5 +1,6 @@
-import uuid
 from dataclasses import dataclass
+
+import uuid7
 
 from bson import ObjectId
 
@@ -24,7 +25,7 @@ class SnapshotBuilder(UseCase):
         if not constants:
             raise ValueError(f"No se encontraron constants: {str(self.constants_id)}")
 
-        batch_id_val = self.batch_id if self.batch_id else str(uuid.uuid4())
+        batch_id_val = self.batch_id if self.batch_id else str(uuid7.create())
 
         return await self.orm_snapshot.persist(
             Snapshot(

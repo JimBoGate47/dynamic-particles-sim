@@ -1819,6 +1819,7 @@ dependencies = [
     { name = "pandas" },
     { name = "plotly" },
     { name = "torch" },
+    { name = "uuid7-standard" },
 ]
 
 [package.metadata]
@@ -1831,6 +1832,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "plotly", specifier = ">=6.0.0" },
     { name = "torch", specifier = ">=2.7.0", index = "https://download.pytorch.org/whl/cu126" },
+    { name = "uuid7-standard", specifier = ">=1.0.0" },
 ]
 
 [[package]]
@@ -1979,6 +1981,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+]
+
+[[package]]
+name = "uuid7-standard"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/0d/bbb440a1fad38c1be8cdc4c379e061ec10661061e43b68cf7e9ae718455b/uuid7_standard-1.1.0.tar.gz", hash = "sha256:c7efdef8309265444fd11439bda8df10bd6469b56be62c1d3d78e014d16b4b9a", size = 2181, upload-time = "2025-07-04T21:00:12.768Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/3e/568b8382627e0fec58ef3c83c3cafa241b86ff41ba37874df057693c12d1/uuid7_standard-1.1.0-py3-none-any.whl", hash = "sha256:725f8f9202662dd6212df6b8caa1e101c2a61935261f43438bca842e058c5726", size = 2561, upload-time = "2025-07-04T21:00:11.939Z" },
 ]
 
 [[package]]
