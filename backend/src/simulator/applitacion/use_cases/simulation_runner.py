@@ -2,32 +2,31 @@ from dataclasses import dataclass
 
 from loguru import logger
 
-from src.common.domain.entities.particle_system import ParticleSystem2D
+from src.common.domain.entities import Snapshot
 from src.common.domain.interfaces import UseCase
-from src.common.infrastructure.repositories.constants import ORMConstantsRepository
-from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from src.simulator.applitacion.mixins import SnapshotFinderMixin
-from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
-from src.simulator.applitacion.use_cases.velocity_verlet_applier import VelocityVerletApplier
+from src.simulator.applitacion.use_cases.simulation_mixins import SimulationStabilizerMixin
 from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
-from src.simulator.domain.interfaces import Interaction
-from src.simulator.infrastructure.builders.particle_system import build_particles_2d
 from src.simulator.infrastructure.builders.system_tensor import build_system_tensor
+from src.simulator.infrastructure.interaction import (
+    build_interactions,
+)
 
 
 @dataclass
-class SimulationRunner(UseCase, SnapshotFinderMixin):
-    interactions: Interaction
+class SimulationStabilizerRunner(UseCase, SnapshotFinderMixin, SimulationStabilizerMixin):
     n_steps: int = 506
     save_at_mod: int = 100
-    fetch_links: bool
+    fetch_links: bool = True
 
-    async def execute(self, *args, **kwargs) -> list[dict]:
+    async def execute(self, *args, **kwargs) -> list[Snapshot]:
         snapshot = await self.find_by_id()
         if not snapshot:
             raise ValueError("Snapshot not found")
         if not snapshot.constants:
             raise ValueError("Snapshot has no linked constants")
+
+        interactions = build_interactions(add_gravity=False)
 
         system_tensor = build_system_tensor(snapshot)
         ps = ParticleSystem2DTensor(
@@ -40,23 +39,13 @@ class SimulationRunner(UseCase, SnapshotFinderMixin):
 
         logger.info("Starting simulation: step={} batch_id={} sim_props={}",
                     ps.step, snapshot.batch_id, snapshot.constants.sim_props)
-        snapshots = []
-        for n_step in range(1, self.n_steps + 1):
-            particles_system: ParticleSystem2D = build_particles_2d(ps)
-            if n_step % self.save_at_mod == 0:
-                logger.debug("Simulation progress: step={}", ps.step)
-                snap = await SnapshotBuilder(
-                    step=ps.step,
-                    constants_id=snapshot.constants.id_object,
-                    particles=particles_system.particles,
-                    batch_id=snapshot.batch_id,
-                    orm_snapshot=ORMSnapshotRepository(),
-                    orm_constants=ORMConstantsRepository(),
-                ).execute()
-                snapshots.append(snap)
-            await VelocityVerletApplier(
-                particle_system=ps,
-                sim_props=snapshot.constants.sim_props,
-                interactions=self.interactions,
-            ).execute()
+        snapshots = await self.stabilize(
+            ps=ps,
+            constants_id=snapshot.constants.id_object,
+            batch_id=snapshot.batch_id,
+            sim_props=snapshot.constants.sim_props,
+            interactions=interactions,
+            stabilization_steps=self.n_steps,
+            save_at_mod=self.save_at_mod,
+        )
         return snapshots

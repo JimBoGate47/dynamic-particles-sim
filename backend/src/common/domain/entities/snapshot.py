@@ -15,6 +15,9 @@ class Snapshot(CustomBaseModel):
     particles: List[Particle]
     batch_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
+    def regenerate_batch_id(self) -> None:
+        self.batch_id = str(uuid.uuid4())
+
     def to_json(self) -> dict:
         return {
             "id": self.id,

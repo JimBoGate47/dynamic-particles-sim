@@ -11,12 +11,8 @@ from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from src.simulator.applitacion.use_cases.snapshot_finder import SnapshotFinderById
 from src.simulator.domain.constants import DeviceType
 from src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
-from src.simulator.applitacion.use_cases.simulation_runner import SimulationRunner
-from src.simulator.infrastructure.interaction import (
-    PairElectrostaticInteraction,
-    PotencialWallInteractionDecorator,
-    FrictionInteractionDecorator,
-)
+from src.simulator.applitacion.use_cases.simulation_runner import SimulationStabilizerRunner
+
 
 
 class GetSnapshotRequest(BaseModel):
@@ -95,16 +91,11 @@ async def create_snapshot(req: CreateSnapshotRequest) -> dict:
 
 
 async def run_simulation(req: RunSimulationRequest) -> list[dict]:
-    interactions = PairElectrostaticInteraction()
-    interactions = PotencialWallInteractionDecorator(interactions)
-    interactions = FrictionInteractionDecorator(interactions)
-
     async with db_connection():
-        snapshots = await SimulationRunner(
+        snapshots = await SimulationStabilizerRunner(
             snapshot_id=req.snapshot_id,
             orm_snapshot=ORMSnapshotRepository(),
             fetch_links=True,
-            interactions=interactions,
             n_steps=req.n_steps,
             save_at_mod=req.save_at_mod,
         ).execute()

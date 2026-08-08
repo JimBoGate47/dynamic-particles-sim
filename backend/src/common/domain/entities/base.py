@@ -6,5 +6,5 @@ class CustomBaseModel(BaseModel):
     id: str | None = None
 
     @property
-    def id_object(self):
+    def id_object(self) -> ObjectId:
         return ObjectId(self.id)

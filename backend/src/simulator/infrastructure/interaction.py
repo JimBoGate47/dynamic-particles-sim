@@ -197,3 +197,13 @@ class FrictionInteractionDecorator(
             velocity=interaction_response.velocity,
             acceleration=acceleration,
         )
+
+
+def build_interactions(add_gravity: bool = False) -> Interaction:
+    interactions = PairElectrostaticInteraction()
+    interactions = PotencialWallInteractionDecorator(interactions)
+    interactions = FrictionInteractionDecorator(interactions)
+
+    if add_gravity:
+        interactions = GravityInteractionDecorator(interactions)
+    return interactions

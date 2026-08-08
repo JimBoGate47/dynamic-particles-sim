@@ -46,3 +46,13 @@ class SimulationProps(BaseModel):
     k_confinement: float
     beta: float
     dt: float
+    delta_gravity: float | None = None
+
+    @property
+    def delta_gravity_exists(self) -> bool:
+        if (
+                self.delta_gravity and
+                self.delta_gravity > 0
+        ):
+            return True
+        return False
