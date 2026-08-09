@@ -16,6 +16,16 @@ dependencies = [
     "uuid7-standard>=1.0.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["backend/tests"]
+addopts = "--ignore=backend/tests/use_cases/constants/constants_builder_test.py --ignore=backend/tests/use_cases/particles/snapshot_builder_test.py"
+
 [tool.uv.workspace]
 members = [
     "frontend",

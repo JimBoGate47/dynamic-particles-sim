@@ -1,5 +1,6 @@
 from loguru import logger
 
+from frontend.domain.enums import ConfinementType
 from frontend.domain.types.constants import Constants
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
 from src.simulator.presentation.constants import (
@@ -12,10 +13,12 @@ from src.simulator.presentation.snapshots import (
     GetSnapshotRequest,
     ListSnapshotsRequest,
     RunSimulationRequest,
+    RunSimulationWithGravityRequest,
     create_snapshot,
     get_snapshot,
     list_snapshots,
     run_simulation,
+    run_simulation_with_gravity,
 )
 
 
@@ -52,12 +55,30 @@ class SimulatorService:
         snapshot_id: str,
         n_steps: int = 506,
         save_at_mod: int = 100,
+        wall: ConfinementType = ConfinementType.HARMONIC,
     ) -> list[Snapshot]:
         logger.info("Running simulation from snapshot {}", snapshot_id)
         responses = await run_simulation(RunSimulationRequest(
             snapshot_id=snapshot_id,
             n_steps=n_steps,
             save_at_mod=save_at_mod,
+            wall=wall,
+        ))
+        return [Snapshot.model_validate(r) for r in responses]
+
+    async def simulation_plus_gravity_runner(
+        self,
+        snapshot_id: str,
+        stabilization_steps: int = 506,
+        n_steps: int = 10,
+        wall: ConfinementType = ConfinementType.HARMONIC,
+    ) -> list[Snapshot]:
+        logger.info("Running gravity simulation from snapshot {}", snapshot_id)
+        responses = await run_simulation_with_gravity(RunSimulationWithGravityRequest(
+            snapshot_id=snapshot_id,
+            stabilization_steps=stabilization_steps,
+            n_steps=n_steps,
+            wall=wall,
         ))
         return [Snapshot.model_validate(r) for r in responses]
 

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from config.database import db_connection
 from src.common.domain.entities.particle import Particle
+from src.common.domain.enums import ConfinementType
 from src.common.domain.filters.snapshot import SnapshotsFilter
 from src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
@@ -11,6 +12,7 @@ from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from src.simulator.applitacion.use_cases.snapshot_finder import SnapshotFinderById
 from src.simulator.domain.constants import DeviceType
 from src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
+from src.simulator.applitacion.use_cases.simulation_plus_gravity_runner import SimulationPlusGravityRunner
 from src.simulator.applitacion.use_cases.simulation_runner import SimulationStabilizerRunner
 
 
@@ -44,6 +46,15 @@ class RunSimulationRequest(BaseModel):
     snapshot_id: str
     n_steps: int = 506
     save_at_mod: int = 100
+    wall: ConfinementType = ConfinementType.HARMONIC
+
+
+class RunSimulationWithGravityRequest(BaseModel):
+    snapshot_id: str
+    stabilization_steps: int = 506
+    n_steps: int = 10
+    save_at_mod: int = 100
+    wall: ConfinementType = ConfinementType.HARMONIC
 
 
 async def get_snapshot(req: GetSnapshotRequest) -> dict | None:
@@ -98,5 +109,19 @@ async def run_simulation(req: RunSimulationRequest) -> list[dict]:
             fetch_links=True,
             n_steps=req.n_steps,
             save_at_mod=req.save_at_mod,
+            wall=req.wall,
+        ).execute()
+        return [s.model_dump(mode="json") for s in snapshots]
+
+
+async def run_simulation_with_gravity(req: RunSimulationWithGravityRequest) -> list[dict]:
+    async with db_connection():
+        snapshots = await SimulationPlusGravityRunner(
+            snapshot_id=req.snapshot_id,
+            orm_snapshot=ORMSnapshotRepository(),
+            fetch_links=True,
+            stabilization_steps=req.stabilization_steps,
+            n_steps=req.n_steps,
+            wall=req.wall,
         ).execute()
         return [s.model_dump(mode="json") for s in snapshots]

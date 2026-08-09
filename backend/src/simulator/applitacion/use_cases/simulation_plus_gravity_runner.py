@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from src.common.domain.entities import Snapshot
+from src.common.domain.enums import ConfinementType
 from src.common.domain.entities.properties import SimulationProps
 from src.common.domain.interfaces import UseCase
 from src.simulator.applitacion.mixins import SnapshotFinderMixin
@@ -18,8 +19,8 @@ _SAVE_AT_MOD_DISABLED = 0
 class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabilizerMixin):
     stabilization_steps: int = 506
     n_steps: int = 10
-    save_at_mod: int = 100
     fetch_links: bool = True
+    wall: ConfinementType = ConfinementType.HARMONIC
 
     async def execute(self, *args, **kwargs) -> list[Snapshot]:
         snapshot = await self.find_by_id()
@@ -28,10 +29,7 @@ class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabil
         if not snapshot.constants:
             raise ValueError("Snapshot has no linked constants")
 
-        # BatchID regenerado para crear un conjunto nuevo de configuraciones
-        snapshot.regenerate_batch_id()
-
-        interactions = build_interactions(add_gravity=True)
+        interactions = build_interactions(add_gravity=True, wall=self.wall)
 
         system_tensor = build_system_tensor(snapshot)
         ps = ParticleSystem2DTensor(
@@ -63,9 +61,9 @@ class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabil
         if not sim_props.delta_gravity_exists:
             raise Exception("Delta gravity not found")
 
-        for i in range(self.n_steps):
+        for i in range(1, self.n_steps + 1):
             sim_props.model_copy(
-                update={"g": sim_props.delta_gravity},
+                update={"g": i * sim_props.delta_gravity},
             )
             sim_props_list.append(sim_props)
         return sim_props_list

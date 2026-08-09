@@ -24,6 +24,7 @@ _NEW_DEFAULTS = {
         "k_confinement": 0.5,
         "beta": 0.6,
         "r_confinement": 6.0,
+        "delta_gravity": 0,
     },
     "friction": 0,
     "confinement": "radial",

@@ -54,6 +54,12 @@ class VelocityVerletApplier(UseCase, Generic[T]):
             new_acc=new_acc,
             dt=self.sim_props.dt,
         )
+        # Los decoradores de pared (reflexión dura) pueden sobreescribir la
+        # posición/velocidad integradas para corregir el cruce de la pared.
+        if response.velocity is not None:
+            new_vel = response.velocity
+        if response.positions is not None:
+            new_pos = response.positions
 
         self.particle_system.update(
             pos=new_pos,

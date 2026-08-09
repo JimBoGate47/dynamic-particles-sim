@@ -5,12 +5,15 @@ import reflex as rx
 from loguru import logger
 from pydantic import ValidationError
 
+from frontend.domain.enums import ConfinementType
 from frontend.domain.types.snapshots import Particle, Snapshot, SnapshotsCollection
 from frontend.infrastructure.simulator import SimulatorService
 
 SIMULATION_COLUMNS = [
     {"key": "batch_id", "header": "Batch ID"},
 ]
+
+CONFINEMENT_TYPES = [member.value for member in ConfinementType]
 
 
 def _collect_particle_data(snapshots: list) -> dict:
@@ -90,8 +93,16 @@ class SnapshotsState(rx.State):
     selected_row: SnapshotsCollection | None = None
     slider_value: int = 0
     new_snapshot_raw: str = ""
+    add_gravity: bool = False
+    confinement: str = ConfinementType.HARMONIC.value
     _current_constants_id: str = ""
     _current_constants_name: str = ""
+
+    def set_add_gravity(self, value: bool):
+        self.add_gravity = value
+
+    def set_confinement(self, value: str):
+        self.confinement = value
 
     async def load_current_snapshot(self, constants_name: str, constants_id: str = ""):
         logger.info("Loading snapshots for {}", constants_name)
@@ -119,9 +130,17 @@ class SnapshotsState(rx.State):
                 yield rx.toast.error("No snapshots in collection")
                 return
             snapshot = col.snapshots[-1]
-            snapshots = await service.simulation_runner(
-                snapshot_id=snapshot.id,
-            )
+            wall = ConfinementType(self.confinement)
+            if self.add_gravity:
+                snapshots = await service.simulation_plus_gravity_runner(
+                    snapshot_id=snapshot.id,
+                    wall=wall,
+                )
+            else:
+                snapshots = await service.simulation_runner(
+                    snapshot_id=snapshot.id,
+                    wall=wall,
+                )
             yield rx.toast.success(f"Simulación completada: {len(snapshots)} snapshots")
             yield await self.load_current_snapshot(
                 self._current_constants_name,

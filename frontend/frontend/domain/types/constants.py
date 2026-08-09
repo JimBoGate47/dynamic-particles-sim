@@ -9,6 +9,7 @@ class SimulationProps(BaseModel):
     r_confinement: float = 0
     k_confinement: float = 0
     beta: float = 0
+    delta_gravity: float | None = None
 
 
 class Constants(BaseModel):

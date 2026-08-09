@@ -1,8 +1,8 @@
-import warnings
 from dataclasses import dataclass
 
 import torch
 
+from src.common.domain.enums import ConfinementType
 from src.simulator.domain.interfaces import Interaction, InteractionDecorator
 from src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
 
@@ -49,8 +49,8 @@ class PairElectrostaticInteraction(
         # --- FIN DE LA MODIFICACIÓN ---
 
         return GenericInteractionResponse(
-            positions=query.positions,
-            velocity=query.velocity,
+            positions=None,
+            velocity=None,
             acceleration=aceleration,
         )
 
@@ -73,8 +73,8 @@ class GravityInteractionDecorator(
         gravity_acceleration[:, 1] = - gravity_force.squeeze() / query.phys_props.m.squeeze()
         acceleration = interaction_response.acceleration + gravity_acceleration
         return GenericInteractionResponse(
-            positions=query.positions,
-            velocity=query.velocity,
+            positions=interaction_response.positions,
+            velocity=interaction_response.velocity,
             acceleration=acceleration,
         )
 
@@ -103,80 +103,176 @@ class PotencialWallInteractionDecorator(
 
 
 @dataclass
-class Potencial4WallInteractionDecorator(
+class WCAWallInteractionDecorator(
     InteractionDecorator[
         GenericInteractionQuery,
         GenericInteractionResponse,
     ]
 ):
+    # Sección 4.1: potencial WCA (Weeks–Chandler–Andersen) dependiente de la
+    # distancia a la pared d = |R - r|, puramente repulsivo, con fuerza acotada.
+    #   V(d) = 4*eps*[(sigma/d)^12 - (sigma/d)^6] + eps    d < d_c = 2^(1/6)*sigma
+    #   F(d) = (24*eps/sigma)*[2*(sigma/d)^13 - (sigma/d)^7]
+    epsilon: float | None = None
+    sigma: float | None = None
+    d_cutoff: float | None = None
+    force_max: float | None = None
+
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
         interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
-        # The potential is U = (1/4) * k * |r|^4
-        # The force is F = -grad(U) = -k * |r|^2 * r_vec
-        # The acceleration is a = F/m = - (k/m) * |r|^2 * r_vec
         positions = query.positions
-        r_squared = torch.sum(positions ** 2, dim=1, keepdim=True)
-        potential_force = - query.sim_props.k_confinement * r_squared * positions
-        potential_acceleration = potential_force / query.phys_props.m
+        r = torch.norm(positions, dim=1, keepdim=True)
+        R = query.sim_props.r_confinement
+        epsilon = self.epsilon if self.epsilon is not None else query.sim_props.k_confinement
+        sigma = self.sigma if self.sigma is not None else 0.1 * R
+        d_cut = self.d_cutoff if self.d_cutoff is not None else (2.0 ** (1.0 / 6.0)) * sigma
+        # Tope de fuerza por defecto: suficiente para frenar a las partículas con
+        # dt típico (dt=0.1) sin "fling"; valores >~200 inyectan demasiado momento.
+        force_max = self.force_max if self.force_max is not None else 100.0
+
+        distance = torch.abs(R - r)
+        active = distance < d_cut
+        # s_cap evita overflow de s**13 en float32 (ver sección 5.2 del doc)
+        s_cap = (
+            force_max
+            * max(sigma, SECURE_DIVISION_CONSTANT)
+            / (48.0 * max(epsilon, SECURE_DIVISION_CONSTANT))
+        ) ** (1.0 / 13.0)
+        s = torch.clamp(sigma / torch.clamp(distance, min=SECURE_DIVISION_CONSTANT), max=s_cap)
+        force_mag = (24.0 * epsilon / sigma) * (2.0 * s ** 13 - s ** 7)
+        force_mag = torch.clamp(force_mag, max=force_max)
+        force_mag = torch.where(active, force_mag, torch.zeros_like(force_mag))
+        inward = -positions / torch.clamp(r, min=SECURE_DIVISION_CONSTANT)
+        wall_acceleration = (force_mag * inward) / query.phys_props.m
         return GenericInteractionResponse(
             positions=interaction_response.positions,
             velocity=interaction_response.velocity,
-            acceleration=interaction_response.acceleration + potential_acceleration
+            acceleration=interaction_response.acceleration + wall_acceleration
         )
 
 
 @dataclass
-class Potencial8WallInteractionDecorator(
+class HarmonicWallInteractionDecorator(
     InteractionDecorator[
         GenericInteractionQuery,
         GenericInteractionResponse,
     ]
 ):
+    # Sección 4.3: pared armónica (resorte repulsivo) dependiente de d = |R - r|.
+    #   V(d) = eps*(d - d_c)^2    d < d_c
+    #   |F(d)| = 2*eps*(d_c - d)  lineal, acotada, radial hacia adentro
+    epsilon: float | None = None
+    d_cutoff: float | None = None
+
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
         interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
-        # The potential is U = (1/8) * k * |r|^8
-        # The force is F = -grad(U) = -k * |r|^6 * r_vec
-        # The acceleration is a = F/m = - (k/m) * |r|^2 * r_vec
         positions = query.positions
-        r_squared = torch.sum(positions ** 2, dim=1, keepdim=True)
-        # r^6 = (r^2)^3
-        r_sixth = r_squared ** 3
-        potential_force = - query.sim_props.k_confinement * r_sixth * positions
-        potential_acceleration = potential_force / query.phys_props.m
+        r = torch.norm(positions, dim=1, keepdim=True)
+        R = query.sim_props.r_confinement
+        # Heurístico: la pared debe ser ~100x más rígida que la trampa armónica
+        # (que vale k_confinement) para confinar en la cáscara corta; ajustable.
+        epsilon = self.epsilon if self.epsilon is not None else 100.0 * query.sim_props.k_confinement
+        sigma = 0.1 * R
+        d_cut = self.d_cutoff if self.d_cutoff is not None else (2.0 ** (1.0 / 6.0)) * sigma
+
+        distance = torch.abs(R - r)
+        active = distance < d_cut
+        force_mag = 2.0 * epsilon * (d_cut - distance)
+        force_mag = torch.clamp(force_mag, min=0.0)
+        force_mag = torch.where(active, force_mag, torch.zeros_like(force_mag))
+        inward = -positions / torch.clamp(r, min=SECURE_DIVISION_CONSTANT)
+        wall_acceleration = (force_mag * inward) / query.phys_props.m
         return GenericInteractionResponse(
             positions=interaction_response.positions,
             velocity=interaction_response.velocity,
-            acceleration=interaction_response.acceleration + potential_acceleration
+            acceleration=interaction_response.acceleration + wall_acceleration
         )
 
 
-class HardWallInteractionDecorator(InteractionDecorator):
+@dataclass
+class HardWallEventDrivenInteractionDecorator(
+    InteractionDecorator[
+        GenericInteractionQuery,
+        GenericInteractionResponse,
+    ]
+):
+    # Sección 6.3: pared dura exacta por reflexión especular event-driven.
+    # Resuelve t_c en |r0 + v*t_c| = R (ecuación cuadrática, sección 3.1),
+    # refleja en el punto de contacto y continúa el tiempo restante.
+    # Corrige el tunneling de HardWallInteractionDecorator (que solo revisaba
+    # la posición final) y rescata partículas que quedaron fuera de la pared.
+    padding: float = 0.0
+
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
-        """
-        Reflects particles upon collision with a wall of radius R.
-        For highly charged particles, very small time steps (dt) will be required.
-        Very large velocities will make the system unstable.
-        """
-        warnings.warn("""
-        This class may be unnecessary; consider using a hard wall by applying a potential V = k * r^n with n → infinity.
-        """)
         interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
         pos = query.positions.clone()
         vel = query.velocity.clone()
+        R = query.sim_props.r_confinement + self.padding
+        dt = query.sim_props.dt
 
-        r_mag = torch.linalg.norm(pos, dim=1)
-        collided = r_mag > query.sim_props.r_confinement
+        # Coeficientes de la cuadrática a*t^2 + 2*b*t + c = 0
+        a = torch.sum(vel ** 2, dim=1)
+        b = torch.sum(pos * vel, dim=1)
+        c = torch.sum(pos ** 2, dim=1) - R ** 2
+        disc = b ** 2 - a * c
 
-        if collided.any():
-            n = pos[collided] / r_mag[collided].unsqueeze(1)
-            v_collided = vel[collided]
-            dot_products = torch.sum(v_collided * n, dim=1, keepdim=True)
-            vel[collided] = v_collided - 2 * dot_products * n
-            pos[collided] = n * query.sim_props.r_confinement
+        eps = torch.finfo(a.dtype).eps
+        a_safe = torch.where(a > eps, a, torch.ones_like(a))
+        sqrt_disc = torch.sqrt(torch.clamp(disc, min=0.0))
+        t1 = (-b - sqrt_disc) / a_safe
+        t2 = (-b + sqrt_disc) / a_safe
+        inf = torch.full_like(t1, float("inf"))
+        t_coll = torch.minimum(
+            torch.where(t1 >= 0.0, t1, inf),
+            torch.where(t2 >= 0.0, t2, inf),
+        )
+
+        # Punto de contacto y su normal para las partículas dentro del disco.
+        tc = torch.where(torch.isfinite(t_coll), t_coll, torch.zeros_like(t_coll))
+        r_c = pos + vel * tc.unsqueeze(1)
+        n = r_c / torch.clamp(torch.linalg.norm(r_c, dim=1, keepdim=True), min=eps)
+        dot = torch.sum(vel * n, dim=1, keepdim=True)
+
+        # Solo se refleja si la partícula intenta salir (velocidad radial saliente).
+        leaving = dot.squeeze(1) > 0.0
+        has_collision = (
+            (a > eps)
+            & (disc >= 0.0)
+            & torch.isfinite(t_coll)
+            & (t_coll <= dt)
+            & leaving
+        )
+
+        # Partículas que colisionan: avanzar a la pared, reflejar, continuar.
+        tc = torch.where(has_collision, t_coll, torch.zeros_like(t_coll))
+        r_c = pos + vel * tc.unsqueeze(1)
+        n = r_c / torch.clamp(torch.linalg.norm(r_c, dim=1, keepdim=True), min=eps)
+        dot = torch.sum(vel * n, dim=1, keepdim=True)
+        v_reflected = vel - 2.0 * dot * n
+        remaining = dt - tc
+        pos_collided = r_c + v_reflected * remaining.unsqueeze(1)
+
+        # Partículas sin colisión: propagación libre.
+        pos_moved = pos + vel * dt
+
+        # Rescate de partículas fuera de la pared: snap a la pared y, si se
+        # alejan, invertir solo la componente radial saliente.
+        r0 = torch.linalg.norm(pos, dim=1)
+        outside = r0 > R
+        rescue = outside & ~has_collision
+        n_out = pos / torch.clamp(r0.unsqueeze(1), min=eps)
+        dot_out = torch.sum(vel * n_out, dim=1, keepdim=True)
+        v_rescued = vel - 2.0 * torch.clamp(dot_out, min=0.0) * n_out
+        pos_rescued = n_out * R
+
+        new_pos = torch.where(has_collision.unsqueeze(1), pos_collided, pos_moved)
+        new_vel = torch.where(has_collision.unsqueeze(1), v_reflected, vel)
+        new_pos = torch.where(rescue.unsqueeze(1), pos_rescued, new_pos)
+        new_vel = torch.where(rescue.unsqueeze(1), v_rescued, new_vel)
 
         return GenericInteractionResponse(
-            positions=pos,
-            velocity=vel,
+            positions=new_pos,
+            velocity=new_vel,
             acceleration=interaction_response.acceleration,
         )
 
@@ -199,9 +295,19 @@ class FrictionInteractionDecorator(
         )
 
 
-def build_interactions(add_gravity: bool = False) -> Interaction:
+def build_interactions(
+    add_gravity: bool = False,
+    wall: ConfinementType = ConfinementType.HARMONIC,
+) -> Interaction:
     interactions = PairElectrostaticInteraction()
-    interactions = PotencialWallInteractionDecorator(interactions)
+    if wall == ConfinementType.POTENCIAL:
+        interactions = PotencialWallInteractionDecorator(interactions)
+    elif wall == ConfinementType.WCA:
+        interactions = WCAWallInteractionDecorator(interactions)
+    elif wall == ConfinementType.HARD_WALL:
+        interactions = HardWallEventDrivenInteractionDecorator(interactions)
+    else:
+        interactions = HarmonicWallInteractionDecorator(interactions)
     interactions = FrictionInteractionDecorator(interactions)
 
     if add_gravity:

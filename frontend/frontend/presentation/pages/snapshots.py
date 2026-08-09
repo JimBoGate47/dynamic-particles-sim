@@ -3,7 +3,7 @@ import reflex as rx
 from frontend.components.data_table import data_table
 from frontend.components.dynamic_plotly import plotly_modal
 from frontend.components.json_modal import json_modal
-from frontend.states.snapshots_state import SnapshotsState, SIMULATION_COLUMNS
+from frontend.states.snapshots_state import SnapshotsState, SIMULATION_COLUMNS, CONFINEMENT_TYPES
 
 _PLAY_BUTTONS = [
     {
@@ -96,6 +96,19 @@ def snapshots() -> rx.Component:
                     color="#f1f5f9",
                 ),
                 rx.spacer(),
+                rx.checkbox(
+                    "Gravity",
+                    checked=SnapshotsState.add_gravity,
+                    on_change=SnapshotsState.set_add_gravity,
+                    color_scheme="blue",
+                ),
+                rx.select(
+                    CONFINEMENT_TYPES,
+                    value=SnapshotsState.confinement,
+                    on_change=SnapshotsState.set_confinement,
+                    placeholder="Tipo de confinamiento",
+                    width="220px",
+                ),
                 rx.button(
                     rx.icon("plus"),
                     "New",

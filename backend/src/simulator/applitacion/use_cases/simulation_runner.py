@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from loguru import logger
 
 from src.common.domain.entities import Snapshot
+from src.common.domain.enums import ConfinementType
 from src.common.domain.interfaces import UseCase
 from src.simulator.applitacion.mixins import SnapshotFinderMixin
 from src.simulator.applitacion.use_cases.simulation_mixins import SimulationStabilizerMixin
@@ -18,6 +19,7 @@ class SimulationStabilizerRunner(UseCase, SnapshotFinderMixin, SimulationStabili
     n_steps: int = 506
     save_at_mod: int = 100
     fetch_links: bool = True
+    wall: ConfinementType = ConfinementType.HARMONIC
 
     async def execute(self, *args, **kwargs) -> list[Snapshot]:
         snapshot = await self.find_by_id()
@@ -26,7 +28,7 @@ class SimulationStabilizerRunner(UseCase, SnapshotFinderMixin, SimulationStabili
         if not snapshot.constants:
             raise ValueError("Snapshot has no linked constants")
 
-        interactions = build_interactions(add_gravity=False)
+        interactions = build_interactions(add_gravity=False, wall=self.wall)
 
         system_tensor = build_system_tensor(snapshot)
         ps = ParticleSystem2DTensor(
