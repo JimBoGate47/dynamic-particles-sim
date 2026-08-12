@@ -89,6 +89,7 @@ class ORMSnapshotRepository(SnapshotRepository):
             constants=constant_orm,
             particles=snapshot.particles,
             batch_id=snapshot.batch_id,
+            metadata=snapshot.metadata,
         )
         await snapshot_orm.insert()
         return build_snapshot(snapshot_orm)
@@ -100,6 +101,7 @@ class ORMSnapshotRepository(SnapshotRepository):
             constants=constant_orm,
             particles=snapshot.particles,
             batch_id=snapshot.batch_id,
+            metadata=snapshot.metadata,
         )
         await snapshot_orm.insert()
         return build_snapshot(snapshot_orm)

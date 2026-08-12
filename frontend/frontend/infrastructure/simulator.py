@@ -58,13 +58,13 @@ class SimulatorService:
         wall: ConfinementType = ConfinementType.HARMONIC,
     ) -> list[Snapshot]:
         logger.info("Running simulation from snapshot {}", snapshot_id)
-        responses = await run_simulation(RunSimulationRequest(
+        response = await run_simulation(RunSimulationRequest(
             snapshot_id=snapshot_id,
             n_steps=n_steps,
             save_at_mod=save_at_mod,
             wall=wall,
         ))
-        return [Snapshot.model_validate(r) for r in responses]
+        return [Snapshot.model_validate(s) for s in response]
 
     async def simulation_plus_gravity_runner(
         self,
@@ -74,13 +74,13 @@ class SimulatorService:
         wall: ConfinementType = ConfinementType.HARMONIC,
     ) -> list[Snapshot]:
         logger.info("Running gravity simulation from snapshot {}", snapshot_id)
-        responses = await run_simulation_with_gravity(RunSimulationWithGravityRequest(
+        response = await run_simulation_with_gravity(RunSimulationWithGravityRequest(
             snapshot_id=snapshot_id,
             stabilization_steps=stabilization_steps,
             n_steps=n_steps,
             wall=wall,
         ))
-        return [Snapshot.model_validate(r) for r in responses]
+        return [Snapshot.model_validate(s) for s in response]
 
     async def constants_creator(self, data: dict) -> Constants:
         logger.info("Creating constants with name={}", data.get("name"))

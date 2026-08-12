@@ -4,6 +4,7 @@ import torch
 
 from src.common.domain.enums import ConfinementType
 from src.simulator.domain.interfaces import Interaction, InteractionDecorator
+from src.simulator.infrastructure.helpers.interaction import build_base_response, accumulate, apply_overrides
 from src.simulator.infrastructure.queries import GenericInteractionQuery, GenericInteractionResponse
 
 SECURE_DIVISION_CONSTANT = 1e-9
@@ -48,10 +49,10 @@ class PairElectrostaticInteraction(
 
         # --- FIN DE LA MODIFICACIÓN ---
 
-        return GenericInteractionResponse(
-            positions=None,
-            velocity=None,
+        return build_base_response(
+            component="electrostatic",
             acceleration=aceleration,
+            mass=query.phys_props.m,
         )
 
 
@@ -71,11 +72,11 @@ class GravityInteractionDecorator(
         gravity_force = query.phys_props.m * query.sim_props.g
         gravity_acceleration = torch.zeros_like(interaction_response.acceleration)
         gravity_acceleration[:, 1] = - gravity_force.squeeze() / query.phys_props.m.squeeze()
-        acceleration = interaction_response.acceleration + gravity_acceleration
-        return GenericInteractionResponse(
-            positions=interaction_response.positions,
-            velocity=interaction_response.velocity,
-            acceleration=acceleration,
+        return accumulate(
+            response=interaction_response,
+            component="gravity",
+            contribution=gravity_acceleration,
+            mass=query.phys_props.m,
         )
 
 
@@ -95,10 +96,11 @@ class PotencialWallInteractionDecorator(
         """
         potential_force = - query.sim_props.k_confinement * query.positions
         potential_acceleration = potential_force / query.phys_props.m
-        return GenericInteractionResponse(
-            positions=interaction_response.positions,
-            velocity=interaction_response.velocity,
-            acceleration=interaction_response.acceleration + potential_acceleration
+        return accumulate(
+            response=interaction_response,
+            component="potencial_wall",
+            contribution=potential_acceleration,
+            mass=query.phys_props.m,
         )
 
 
@@ -134,20 +136,21 @@ class WCAWallInteractionDecorator(
         active = distance < d_cut
         # s_cap evita overflow de s**13 en float32 (ver sección 5.2 del doc)
         s_cap = (
-            force_max
-            * max(sigma, SECURE_DIVISION_CONSTANT)
-            / (48.0 * max(epsilon, SECURE_DIVISION_CONSTANT))
-        ) ** (1.0 / 13.0)
+                        force_max
+                        * max(sigma, SECURE_DIVISION_CONSTANT)
+                        / (48.0 * max(epsilon, SECURE_DIVISION_CONSTANT))
+                ) ** (1.0 / 13.0)
         s = torch.clamp(sigma / torch.clamp(distance, min=SECURE_DIVISION_CONSTANT), max=s_cap)
         force_mag = (24.0 * epsilon / sigma) * (2.0 * s ** 13 - s ** 7)
         force_mag = torch.clamp(force_mag, max=force_max)
         force_mag = torch.where(active, force_mag, torch.zeros_like(force_mag))
         inward = -positions / torch.clamp(r, min=SECURE_DIVISION_CONSTANT)
         wall_acceleration = (force_mag * inward) / query.phys_props.m
-        return GenericInteractionResponse(
-            positions=interaction_response.positions,
-            velocity=interaction_response.velocity,
-            acceleration=interaction_response.acceleration + wall_acceleration
+        return accumulate(
+            response=interaction_response,
+            component="wca_wall",
+            contribution=wall_acceleration,
+            mass=query.phys_props.m,
         )
 
 
@@ -182,10 +185,11 @@ class HarmonicWallInteractionDecorator(
         force_mag = torch.where(active, force_mag, torch.zeros_like(force_mag))
         inward = -positions / torch.clamp(r, min=SECURE_DIVISION_CONSTANT)
         wall_acceleration = (force_mag * inward) / query.phys_props.m
-        return GenericInteractionResponse(
-            positions=interaction_response.positions,
-            velocity=interaction_response.velocity,
-            acceleration=interaction_response.acceleration + wall_acceleration
+        return accumulate(
+            response=interaction_response,
+            component="harmonic_wall",
+            contribution=wall_acceleration,
+            mass=query.phys_props.m,
         )
 
 
@@ -236,11 +240,11 @@ class HardWallEventDrivenInteractionDecorator(
         # Solo se refleja si la partícula intenta salir (velocidad radial saliente).
         leaving = dot.squeeze(1) > 0.0
         has_collision = (
-            (a > eps)
-            & (disc >= 0.0)
-            & torch.isfinite(t_coll)
-            & (t_coll <= dt)
-            & leaving
+                (a > eps)
+                & (disc >= 0.0)
+                & torch.isfinite(t_coll)
+                & (t_coll <= dt)
+                & leaving
         )
 
         # Partículas que colisionan: avanzar a la pared, reflejar, continuar.
@@ -270,10 +274,10 @@ class HardWallEventDrivenInteractionDecorator(
         new_pos = torch.where(rescue.unsqueeze(1), pos_rescued, new_pos)
         new_vel = torch.where(rescue.unsqueeze(1), v_rescued, new_vel)
 
-        return GenericInteractionResponse(
+        return apply_overrides(
+            response=interaction_response,
             positions=new_pos,
             velocity=new_vel,
-            acceleration=interaction_response.acceleration,
         )
 
 
@@ -285,19 +289,18 @@ class FrictionInteractionDecorator(
 ):
     def compute_aceleration(self, query: GenericInteractionQuery) -> GenericInteractionResponse:
         interaction_response: GenericInteractionResponse = super().compute_aceleration(query)
-        acceleration = interaction_response.acceleration
         force_friction = - query.sim_props.beta * query.velocity
-        acceleration += force_friction / query.phys_props.m
-        return GenericInteractionResponse(
-            positions=interaction_response.positions,
-            velocity=interaction_response.velocity,
-            acceleration=acceleration,
+        return accumulate(
+            response=interaction_response,
+            component="friction",
+            contribution=force_friction / query.phys_props.m,
+            mass=query.phys_props.m,
         )
 
 
 def build_interactions(
-    add_gravity: bool = False,
-    wall: ConfinementType = ConfinementType.HARMONIC,
+        add_gravity: bool = False,
+        wall: ConfinementType = ConfinementType.HARMONIC,
 ) -> Interaction:
     interactions = PairElectrostaticInteraction()
     if wall == ConfinementType.POTENCIAL:

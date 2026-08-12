@@ -25,6 +25,7 @@ class GenericInteractionResponse(InteractionResponse):
     positions: Optional[torch.Tensor] = None
     velocity: Optional[torch.Tensor] = None
     acceleration: Optional[torch.Tensor] = None
+    contributions: Optional[dict[str, torch.Tensor]] = None
 
 
 @dataclass

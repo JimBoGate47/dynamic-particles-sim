@@ -11,3 +11,4 @@ class SnapshotORM(Document):
     constants: Link[ConstantsORM]
     particles: List[Particle]
     batch_id: str
+    metadata: dict = {}

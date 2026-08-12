@@ -4,7 +4,7 @@ from loguru import logger
 
 from src.common.domain.entities import Snapshot
 from src.common.domain.enums import ConfinementType
-from src.common.domain.interfaces import UseCase
+from src.common.domain.interfaces import EventBus, UseCase
 from src.simulator.applitacion.mixins import SnapshotFinderMixin
 from src.simulator.applitacion.use_cases.simulation_mixins import SimulationStabilizerMixin
 from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
@@ -20,6 +20,8 @@ class SimulationStabilizerRunner(UseCase, SnapshotFinderMixin, SimulationStabili
     save_at_mod: int = 100
     fetch_links: bool = True
     wall: ConfinementType = ConfinementType.HARMONIC
+    event_bus: EventBus | None = None
+    emit_every_n: int | None = None
 
     async def execute(self, *args, **kwargs) -> list[Snapshot]:
         snapshot = await self.find_by_id()

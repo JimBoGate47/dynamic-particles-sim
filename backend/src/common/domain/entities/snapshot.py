@@ -14,6 +14,7 @@ class Snapshot(CustomBaseModel):
     constants: Optional[Constants]
     particles: List[Particle]
     batch_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    metadata: dict = Field(default_factory=dict)
 
     def regenerate_batch_id(self) -> None:
         self.batch_id = str(uuid.uuid4())
@@ -25,6 +26,7 @@ class Snapshot(CustomBaseModel):
             "constants": self.constants.to_json() if self.constants else None,
             "particles": [particle.to_json() for particle in self.particles],
             "batch_id": self.batch_id,
+            "metadata": self.metadata,
         }
 
     def to_plain_dict(self) -> dict:
@@ -33,6 +35,7 @@ class Snapshot(CustomBaseModel):
             "constants": self.constants.to_json() if self.constants else None,
             "particles": self.export_particles(),
             "batch_id": self.batch_id,
+            "metadata": self.metadata,
         }
 
     def export_particles(self) -> List[dict]:

@@ -22,7 +22,7 @@ class VelocityVerletApplier(UseCase, Generic[T]):
     interactions: Interaction
     restriction: SystemRestriction | None = None
 
-    async def execute(self, *args, **kwargs):
+    async def execute(self, *args, **kwargs) -> GenericInteractionResponse:
         half_vel = self.calculate_half_vel(
             vel=self.particle_system.vel,
             acc=self.particle_system.acc,
@@ -66,6 +66,7 @@ class VelocityVerletApplier(UseCase, Generic[T]):
             vel=new_vel,
             acc=new_acc,
         )
+        return response
 
     def _in_place_position_restriction(
             self,

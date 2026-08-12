@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 
+import numpy as np
+from loguru import logger
+
 from src.common.domain.entities import Snapshot
 from src.common.domain.enums import ConfinementType
 from src.common.domain.entities.properties import SimulationProps
-from src.common.domain.interfaces import UseCase
+from src.common.domain.interfaces import EventBus, UseCase
 from src.simulator.applitacion.mixins import SnapshotFinderMixin
 from src.simulator.applitacion.use_cases.simulation_mixins import SimulationStabilizerMixin
 from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
@@ -21,6 +24,8 @@ class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabil
     n_steps: int = 10
     fetch_links: bool = True
     wall: ConfinementType = ConfinementType.HARMONIC
+    event_bus: EventBus | None = None
+    emit_every_n: int | None = None
 
     async def execute(self, *args, **kwargs) -> list[Snapshot]:
         snapshot = await self.find_by_id()
@@ -61,9 +66,16 @@ class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabil
         if not sim_props.delta_gravity_exists:
             raise Exception("Delta gravity not found")
 
-        for i in range(1, self.n_steps + 1):
-            sim_props.model_copy(
-                update={"g": i * sim_props.delta_gravity},
+        gravity_values = np.arange(1, self.n_steps + 1) * sim_props.delta_gravity
+
+        for gravity in gravity_values:
+            sim_props_list.append(
+                sim_props.model_copy(update={"g": float(gravity)}),
             )
-            sim_props_list.append(sim_props)
+        logger.info(
+            "Gravity phases generated: n_steps={} delta_gravity={} g_values={}",
+            self.n_steps,
+            sim_props.delta_gravity,
+            [phase.g for phase in sim_props_list],
+        )
         return sim_props_list

@@ -14,4 +14,5 @@ def build_snapshot(snapshot: SnapshotORM) -> Snapshot:
         ),
         particles=snapshot.particles,
         batch_id=snapshot.batch_id,
+        metadata=snapshot.metadata,
     )

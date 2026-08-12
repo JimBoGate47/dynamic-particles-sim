@@ -19,6 +19,7 @@ class SnapshotBuilder(UseCase):
     orm_snapshot: SnapshotRepository
     batch_id: str | None = None
     orm_constants: ConstantsRepository | None = None
+    metadata: dict | None = None
 
     async def execute(self, *args, **kwargs) -> Snapshot | None:
         constants = await self.orm_constants.find_by_id(self.constants_id)
@@ -33,5 +34,6 @@ class SnapshotBuilder(UseCase):
                 constants=constants,
                 particles=self.particles,
                 batch_id=batch_id_val,
+                metadata=self.metadata or {},
             )
         )
