@@ -254,7 +254,7 @@ class TestMetricsEngine:
         metrics = MetricsEngine.compute(snapshot, build_interactions(wall="harmonic"))
 
         # Act
-        payload = metrics.to_dict()
+        payload = metrics.to_dict(include_forces=True)
 
         # Assert
         assert isinstance(payload["step"], int)
@@ -263,6 +263,19 @@ class TestMetricsEngine:
             all(isinstance(x, float) for x in magnitudes)
             for magnitudes in payload["forces"].values()
         )
+        assert all(isinstance(v, float) for v in payload["aggregates"].values())
+
+    def test_to_dict_hides_forces_by_default(self):
+        # Arrange
+        snapshot = _build_snapshot()
+        metrics = MetricsEngine.compute(snapshot, build_interactions(wall="harmonic"))
+
+        # Act
+        payload = metrics.to_dict()
+
+        # Assert: por defecto solo lo principal, sin fuerzas
+        assert set(payload) == {"step", "aggregates"}
+        assert "forces" not in payload
         assert all(isinstance(v, float) for v in payload["aggregates"].values())
 
     def test_query_uses_gravity_from_snapshot_metadata(self):

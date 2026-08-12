@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import json
 from typing import Awaitable, Callable
 
 from loguru import logger
@@ -13,11 +14,16 @@ from src.simulator.infrastructure.interaction import build_interactions
 from src.simulator.infrastructure.metrics.engine import MetricsEngine, SamplingPolicy
 
 
+def _format_payload(payload: dict) -> str:
+    return json.dumps(payload, indent=2, sort_keys=False)
+
+
 @dataclass
 class MetricsLoggingHandler:
     policy: SamplingPolicy = field(default_factory=SamplingPolicy)
     wall: ConfinementType = ConfinementType.HARMONIC
     add_gravity: bool = False
+    include_forces: bool = False
     snapshot_loader: Callable[[str], Awaitable[Snapshot]] | None = None
 
     async def on_step(self, event: SimulationStepCompleted) -> None:
@@ -31,7 +37,11 @@ class MetricsLoggingHandler:
             sim_props=event.sim_props,
             response=event.response,
         )
-        logger.info("metrics step={} data={}", metrics.step, metrics.to_dict())
+        logger.info(
+            "metrics step={} data=\n{}",
+            metrics.step,
+            _format_payload(metrics.to_dict(include_forces=self.include_forces)),
+        )
 
     async def on_snapshot(self, event: SimulationSnapshotPersisted) -> None:
         if self.snapshot_loader is None:
@@ -49,5 +59,7 @@ class MetricsLoggingHandler:
         )
         metrics = MetricsEngine.compute(snapshot, interactions)
         logger.info(
-            "metrics snapshot={} data={}", metrics.step, metrics.to_dict()
+            "metrics snapshot={} data=\n{}",
+            metrics.step,
+            _format_payload(metrics.to_dict(include_forces=self.include_forces)),
         )

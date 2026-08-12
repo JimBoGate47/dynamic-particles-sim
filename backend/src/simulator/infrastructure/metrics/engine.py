@@ -55,14 +55,16 @@ class SimulationMetrics:
     forces: dict[str, torch.Tensor]
     aggregates: dict[str, float]
 
-    def to_dict(self) -> dict:
-        return {
+    def to_dict(self, include_forces: bool = False) -> dict:
+        payload = {
             "step": self.step,
-            # "forces": {
-            #     name: force.tolist() for name, force in self.forces.items()
-            # },
             "aggregates": self.aggregates,
         }
+        if include_forces:
+            payload["forces"] = {
+                name: force.tolist() for name, force in self.forces.items()
+            }
+        return payload
 
 
 def build_metrics(
