@@ -6,6 +6,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from frontend.domain.enums import ConfinementType
+from frontend.domain.types.gravity import GravityConfig
 from frontend.domain.types.snapshots import Particle, Snapshot, SnapshotsCollection
 from frontend.infrastructure.simulator import SimulatorService
 
@@ -94,12 +95,34 @@ class SnapshotsState(rx.State):
     slider_value: int = 0
     new_snapshot_raw: str = ""
     add_gravity: bool = False
+    gravity_config: GravityConfig = GravityConfig()
     confinement: str = ConfinementType.HARMONIC.value
     _current_constants_id: str = ""
     _current_constants_name: str = ""
 
     def set_add_gravity(self, value: bool):
         self.add_gravity = value
+
+    def set_gravity_start(self, value: int | str):
+        try:
+            self.gravity_config = self.gravity_config.model_copy(
+                update={"start": int(value)},
+            )
+        except (TypeError, ValueError):
+            pass
+
+    def set_gravity_end(self, value: int | str):
+        try:
+            self.gravity_config = self.gravity_config.model_copy(
+                update={"end": int(value)},
+            )
+        except (TypeError, ValueError):
+            pass
+
+    def set_gravity_delta_g(self, value: int | str):
+        self.gravity_config = self.gravity_config.model_copy(
+            update={"delta_g": float(value)},
+        )
 
     def set_confinement(self, value: str):
         self.confinement = value
@@ -134,6 +157,7 @@ class SnapshotsState(rx.State):
             if self.add_gravity:
                 snapshots = await service.simulation_plus_gravity_runner(
                     snapshot_id=snapshot.id,
+                    gravity_config=self.gravity_config,
                     wall=wall,
                 )
             else:

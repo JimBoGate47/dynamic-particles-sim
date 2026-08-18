@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from loguru import logger
@@ -9,6 +9,7 @@ from src.common.domain.entities.properties import SimulationProps
 from src.common.domain.interfaces import EventBus, UseCase
 from src.simulator.applitacion.mixins import SnapshotFinderMixin
 from src.simulator.applitacion.use_cases.simulation_mixins import SimulationStabilizerMixin
+from src.simulator.domain.entities.gravity import GravityConfig
 from src.simulator.domain.entities.particle_system import ParticleSystem2DTensor
 from src.simulator.infrastructure.builders.system_tensor import build_system_tensor
 from src.simulator.infrastructure.interaction import (
@@ -21,7 +22,7 @@ _SAVE_AT_MOD_DISABLED = 0
 @dataclass
 class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabilizerMixin):
     stabilization_steps: int = 506
-    n_steps: int = 10
+    gravity_config: GravityConfig = field(default_factory=GravityConfig)
     fetch_links: bool = True
     wall: ConfinementType = ConfinementType.HARMONIC
     event_bus: EventBus | None = None
@@ -61,21 +62,29 @@ class SimulationPlusGravityRunner(UseCase, SnapshotFinderMixin, SimulationStabil
             snapshots.append(stabilized_snapshots[-1])
         return snapshots
 
-    def updated_gravity_sim_props(self, sim_props: SimulationProps) -> list[SimulationProps]:
-        sim_props_list: list[SimulationProps] = []
-        if not sim_props.delta_gravity_exists:
-            raise Exception("Delta gravity not found")
+    def updated_gravity_sim_props(
+        self,
+        sim_props: SimulationProps,
+        gravity_config: GravityConfig | None = None,
+    ) -> list[SimulationProps]:
+        if gravity_config is None:
+            gravity_config = self.gravity_config
 
-        gravity_values = np.arange(1, self.n_steps + 1) * sim_props.delta_gravity
+        sim_props_list: list[SimulationProps] = []
+        gravity_values = np.arange(
+            gravity_config.start,
+            gravity_config.end + 1,
+        ) * gravity_config.delta_g
 
         for gravity in gravity_values:
             sim_props_list.append(
                 sim_props.model_copy(update={"g": float(gravity)}),
             )
         logger.info(
-            "Gravity phases generated: n_steps={} delta_gravity={} g_values={}",
-            self.n_steps,
-            sim_props.delta_gravity,
+            "Gravity phases generated: start={} end={} delta_g={} g_values={}",
+            gravity_config.start,
+            gravity_config.end,
+            gravity_config.delta_g,
             [phase.g for phase in sim_props_list],
         )
         return sim_props_list

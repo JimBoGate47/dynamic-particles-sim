@@ -2,6 +2,7 @@ from loguru import logger
 
 from frontend.domain.enums import ConfinementType
 from frontend.domain.types.constants import Constants
+from frontend.domain.types.gravity import GravityConfig
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
 from src.simulator.presentation.constants import (
     CreateConstantsRequest,
@@ -70,16 +71,20 @@ class SimulatorService:
         self,
         snapshot_id: str,
         stabilization_steps: int = 506,
-        n_steps: int = 10,
+        gravity_config: GravityConfig | None = None,
         wall: ConfinementType = ConfinementType.HARMONIC,
     ) -> list[Snapshot]:
-        logger.info("Running gravity simulation from snapshot {}", snapshot_id)
-        response = await run_simulation_with_gravity(RunSimulationWithGravityRequest(
+        request = RunSimulationWithGravityRequest(
             snapshot_id=snapshot_id,
             stabilization_steps=stabilization_steps,
-            n_steps=n_steps,
             wall=wall,
-        ))
+        )
+
+        if gravity_config is not None:
+            request.gravity_config = gravity_config
+
+        logger.info("Running gravity simulation from snapshot {} request: {}", snapshot_id, request)
+        response = await run_simulation_with_gravity(request)
         return [Snapshot.model_validate(s) for s in response]
 
     async def constants_creator(self, data: dict) -> Constants:

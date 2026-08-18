@@ -4,6 +4,7 @@ from src.common.domain.entities.properties import SimulationProps
 from src.simulator.applitacion.use_cases.simulation_plus_gravity_runner import (
     SimulationPlusGravityRunner,
 )
+from src.simulator.domain.entities.gravity import GravityConfig
 
 
 def _sim_props(**overrides) -> SimulationProps:
@@ -21,32 +22,32 @@ def _sim_props(**overrides) -> SimulationProps:
     return SimulationProps(**defaults)
 
 
-def _runner(n_steps: int) -> SimulationPlusGravityRunner:
+def _runner(gravity_config: GravityConfig) -> SimulationPlusGravityRunner:
     return SimulationPlusGravityRunner(
         snapshot_id="snapshot-id",
         orm_snapshot=None,
-        n_steps=n_steps,
+        gravity_config=gravity_config,
     )
 
 
 class TestUpdatedGravitySimProps:
-    def test_generates_multiples_of_delta_gravity(self):
+    def test_generates_sequence_with_delta_g_as_factor(self):
         # Arrange
-        runner = _runner(n_steps=3)
+        runner = _runner(GravityConfig(start=1, end=3, delta_g=0.5))
 
         # Act
-        props_list = runner.updated_gravity_sim_props(_sim_props(g=9.0, delta_gravity=0.5))
+        props_list = runner.updated_gravity_sim_props(_sim_props(g=9.0))
 
-        # Assert: g_i = i * delta_gravity, empezando desde delta_gravity (sin sumar sobre g)
+        # Assert: números ascendentes start..end multiplicados por delta_g
         assert [props.g for props in props_list] == [0.5, 1.0, 1.5]
         assert props_list[0].g == 0.5
 
-    def test_delta_gravity_is_the_spacing_between_values(self):
+    def test_delta_g_is_the_multiplicative_factor(self):
         # Arrange
-        runner = _runner(n_steps=5)
+        runner = _runner(GravityConfig(start=1, end=5, delta_g=0.25))
 
         # Act
-        props_list = runner.updated_gravity_sim_props(_sim_props(g=9.0, delta_gravity=0.25))
+        props_list = runner.updated_gravity_sim_props(_sim_props(g=9.0))
 
         # Assert
         values = [props.g for props in props_list]
@@ -56,20 +57,20 @@ class TestUpdatedGravitySimProps:
             for i in range(len(values) - 1)
         )
 
-    def test_final_value_is_open_and_unrestricted(self):
+    def test_end_defines_number_of_steps(self):
         # Arrange
-        runner = _runner(n_steps=4)
+        runner = _runner(GravityConfig(start=1, end=4, delta_g=2.0))
 
         # Act
-        props_list = runner.updated_gravity_sim_props(_sim_props(g=9.0, delta_gravity=2.0))
+        props_list = runner.updated_gravity_sim_props(_sim_props(g=9.0))
 
-        # Assert: el final queda abierto (n_steps * delta), sin tope
+        # Assert: end acota el rango ascendente (end - start + 1 valores)
         assert [props.g for props in props_list] == [2.0, 4.0, 6.0, 8.0]
-        assert props_list[-1].g > props_list[0].g
+        assert len(props_list) == 4
 
     def test_returns_distinct_objects(self):
         # Arrange
-        runner = _runner(n_steps=3)
+        runner = _runner(GravityConfig(start=1, end=3, delta_g=1.0))
 
         # Act
         props_list = runner.updated_gravity_sim_props(_sim_props())
@@ -80,8 +81,8 @@ class TestUpdatedGravitySimProps:
 
     def test_original_sim_props_is_not_mutated(self):
         # Arrange
-        runner = _runner(n_steps=2)
-        sim_props = _sim_props(g=9.0, delta_gravity=2.0)
+        runner = _runner(GravityConfig(start=1, end=2, delta_g=2.0))
+        sim_props = _sim_props(g=9.0)
 
         # Act
         props_list = runner.updated_gravity_sim_props(sim_props)
@@ -90,14 +91,12 @@ class TestUpdatedGravitySimProps:
         assert sim_props.g == 9.0
         assert [props.g for props in props_list] == [2.0, 4.0]
 
-    def test_raises_without_delta_gravity(self):
+    def test_delta_gravity_on_sim_props_is_ignored(self):
         # Arrange
-        runner = _runner(n_steps=1)
+        runner = _runner(GravityConfig(start=1, end=2, delta_g=1.0))
 
-        # Act / Assert
-        try:
-            runner.updated_gravity_sim_props(_sim_props(delta_gravity=None))
-        except Exception as exc:
-            assert "Delta gravity not found" in str(exc)
-        else:
-            raise AssertionError("Expected Exception was not raised")
+        # Act
+        props_list = runner.updated_gravity_sim_props(_sim_props(delta_gravity=None))
+
+        # Assert: ya no depende de sim_props.delta_gravity
+        assert [props.g for props in props_list] == [1.0, 2.0]

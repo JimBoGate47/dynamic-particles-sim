@@ -14,6 +14,7 @@ from src.simulator.applitacion.use_cases.particle_system_2d_builder import Parti
 from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from src.simulator.applitacion.use_cases.snapshot_finder import SnapshotFinderById
 from src.simulator.domain.constants import DeviceType
+from src.simulator.domain.entities.gravity import GravityConfig
 from src.simulator.applitacion.use_cases.snapshot_lister import SnapshotsLister
 from src.simulator.applitacion.use_cases.simulation_plus_gravity_runner import SimulationPlusGravityRunner
 from src.simulator.applitacion.use_cases.simulation_runner import SimulationStabilizerRunner
@@ -65,7 +66,7 @@ class RunSimulationRequest(BaseModel):
 class RunSimulationWithGravityRequest(BaseModel):
     snapshot_id: str
     stabilization_steps: int = 506
-    n_steps: int = 10
+    gravity_config: GravityConfig = GravityConfig()
     save_at_mod: int = 100
     wall: ConfinementType = ConfinementType.HARMONIC
     metrics_enabled: bool = True
@@ -190,7 +191,7 @@ async def run_simulation_with_gravity(req: RunSimulationWithGravityRequest) -> l
                 orm_snapshot=ORMSnapshotRepository(),
                 fetch_links=True,
                 stabilization_steps=req.stabilization_steps,
-                n_steps=req.n_steps,
+                gravity_config=req.gravity_config,
                 wall=req.wall,
                 event_bus=event_bus,
                 emit_every_n=req.emit_every_n,

@@ -2,6 +2,7 @@ import reflex as rx
 
 from frontend.components.data_table import data_table
 from frontend.components.dynamic_plotly import plotly_modal
+from frontend.components.gravity_config import gravity_config_input
 from frontend.components.json_modal import json_modal
 from frontend.states.snapshots_state import SnapshotsState, SIMULATION_COLUMNS, CONFINEMENT_TYPES
 
@@ -101,6 +102,15 @@ def snapshots() -> rx.Component:
                     checked=SnapshotsState.add_gravity,
                     on_change=SnapshotsState.set_add_gravity,
                     color_scheme="blue",
+                ),
+                gravity_config_input(
+                    disabled=~SnapshotsState.add_gravity,
+                    start=SnapshotsState.gravity_config.start,
+                    end=SnapshotsState.gravity_config.end,
+                    delta_g=SnapshotsState.gravity_config.delta_g,
+                    on_start_change=SnapshotsState.set_gravity_start,
+                    on_end_change=SnapshotsState.set_gravity_end,
+                    on_delta_g_change=SnapshotsState.set_gravity_delta_g,
                 ),
                 rx.select(
                     CONFINEMENT_TYPES,
