@@ -96,6 +96,7 @@ class SnapshotsState(rx.State):
     new_snapshot_raw: str = ""
     add_gravity: bool = False
     gravity_config: GravityConfig = GravityConfig()
+    stabilization_steps: int = 506
     confinement: str = ConfinementType.HARMONIC.value
     _current_constants_id: str = ""
     _current_constants_name: str = ""
@@ -123,6 +124,12 @@ class SnapshotsState(rx.State):
         self.gravity_config = self.gravity_config.model_copy(
             update={"delta_g": float(value)},
         )
+
+    def set_stabilization_steps(self, value: int | str):
+        try:
+            self.stabilization_steps = max(1, int(value))
+        except (TypeError, ValueError):
+            pass
 
     def set_confinement(self, value: str):
         self.confinement = value
@@ -157,12 +164,14 @@ class SnapshotsState(rx.State):
             if self.add_gravity:
                 snapshots = await service.simulation_plus_gravity_runner(
                     snapshot_id=snapshot.id,
+                    stabilization_steps=self.stabilization_steps,
                     gravity_config=self.gravity_config,
                     wall=wall,
                 )
             else:
                 snapshots = await service.simulation_runner(
                     snapshot_id=snapshot.id,
+                    n_steps=self.stabilization_steps,
                     wall=wall,
                 )
             yield rx.toast.success(f"Simulación completada: {len(snapshots)} snapshots")

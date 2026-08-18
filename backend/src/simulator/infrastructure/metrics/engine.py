@@ -81,12 +81,18 @@ def build_metrics(
         for name, force in (response.contributions or {}).items()
     }
     # TODO revisar que las metricas son correctas
+    x = positions[:, 0]
+    y = positions[:, 1]
     aggregates = {
         "mean_speed": mean_speed(velocity),
         "rms_speed": rms_speed(velocity),
         "kinetic_energy": kinetic_energy(phys_props.m, velocity),
         "temperature": temperature(phys_props.m, velocity),
         "coulomb_energy": coulomb_energy(phys_props.q, sim_props.k, positions),
+        "x.min_distance": float(x.min()),
+        "x.max_distance": float(x.max()),
+        "y.min_distance": float(y.min()),
+        "y.max_distance": float(y.max()),
     }
     for name, force in forces.items():
         aggregates[f"{name}.min_force"] = float(force.min())

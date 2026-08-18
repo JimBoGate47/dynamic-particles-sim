@@ -19,11 +19,11 @@ _NEW_DEFAULTS = {
     "sim_props": {
         "g": 9,
         "k": 10,
-        "dt": 0.1,
+        "dt": 0.05,
         "min_vel": 0,
         "k_confinement": 0.5,
         "beta": 0.6,
-        "r_confinement": 11.0,
+        "r_confinement": 12.0,
         "delta_gravity": 0.2,
     },
     "friction": 0,
