@@ -223,6 +223,7 @@ class SnapshotsState(rx.State):
         self.new_snapshot_raw = json.dumps({
             "step": 0,
             "constants_id": self._current_constants_id,
+            "n_particles": 32,
             "particles": [],
         }, indent=2)
         self.show_new_modal = True
