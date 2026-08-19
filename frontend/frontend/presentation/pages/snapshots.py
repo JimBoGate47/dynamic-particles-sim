@@ -19,6 +19,12 @@ _PLAY_BUTTONS = [
         "color_scheme": "blue",
         "on_click": lambda row: lambda: SnapshotsState.run_simulation(row.batch_id),
     },
+    {
+        "icon": "download",
+        "tooltip": "Descargar batch (zip)",
+        "color_scheme": "purple",
+        "on_click": lambda row: lambda: SnapshotsState.download_batch_snapshots(row.batch_id),
+    },
 ]
 
 

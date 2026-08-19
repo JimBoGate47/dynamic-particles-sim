@@ -1,5 +1,7 @@
 from typing import Awaitable, Callable
 
+import base64
+
 from bson import ObjectId
 from pydantic import BaseModel
 
@@ -11,6 +13,7 @@ from src.common.domain.filters.snapshot import SnapshotsFilter
 from src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from src.simulator.applitacion.use_cases.particle_system_2d_builder import ParticleSystem2DBuilder
+from src.simulator.applitacion.use_cases.snapshot_batch_zipper import SnapshotsBatchZipper
 from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from src.simulator.applitacion.use_cases.snapshot_finder import SnapshotFinderById
 from src.simulator.domain.constants import DeviceType
@@ -33,6 +36,10 @@ class GetSnapshotRequest(BaseModel):
 
 class ListSnapshotsRequest(BaseModel):
     constants_name: str
+
+
+class SnapshotBatchZipRequest(BaseModel):
+    batch_id: str
 
 
 class ParticlePayload(BaseModel):
@@ -107,6 +114,20 @@ async def list_snapshots(req: ListSnapshotsRequest) -> list[dict]:
             snapshot_repository=ORMSnapshotRepository(),
         ).execute()
         return [col.model_dump(mode="json") for col in collections]
+
+
+async def snapshot_batch_zip(req: SnapshotBatchZipRequest) -> dict | None:
+    async with db_connection():
+        zip_file = await SnapshotsBatchZipper(
+            batch_id=req.batch_id,
+            snapshot_repository=ORMSnapshotRepository(),
+        ).execute()
+        if zip_file is None:
+            return None
+        return {
+            "filename": zip_file.filename,
+            "content": base64.b64encode(zip_file.content).decode("ascii"),
+        }
 
 
 async def create_snapshot(req: CreateSnapshotRequest) -> dict:

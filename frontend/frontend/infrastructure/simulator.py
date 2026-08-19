@@ -1,5 +1,7 @@
 from loguru import logger
 
+import base64
+
 from frontend.domain.enums import ConfinementType
 from frontend.domain.types.constants import Constants
 from frontend.domain.types.gravity import GravityConfig
@@ -15,11 +17,13 @@ from src.simulator.presentation.snapshots import (
     ListSnapshotsRequest,
     RunSimulationRequest,
     RunSimulationWithGravityRequest,
+    SnapshotBatchZipRequest,
     create_snapshot,
     get_snapshot,
     list_snapshots,
     run_simulation,
     run_simulation_with_gravity,
+    snapshot_batch_zip,
 )
 
 
@@ -45,6 +49,13 @@ class SimulatorService:
         logger.info("Fetching snapshot {}", snapshot_id)
         response = await get_snapshot(GetSnapshotRequest(snapshot_id=snapshot_id))
         return Snapshot.model_validate(response)
+
+    async def snapshot_batch_zipper(self, batch_id: str) -> tuple[str, bytes] | None:
+        logger.info("Zipping snapshots for batch {}", batch_id)
+        response = await snapshot_batch_zip(SnapshotBatchZipRequest(batch_id=batch_id))
+        if response is None:
+            return None
+        return response["filename"], base64.b64decode(response["content"])
 
     async def snapshot_creator(self, data: dict) -> Snapshot:
         logger.info("Creating snapshot with step={}", data.get("step"))

@@ -200,6 +200,17 @@ class SnapshotsState(rx.State):
             filename=f"snapshot_{found.step}.json",
         )
 
+    @rx.event
+    async def download_batch_snapshots(self, batch_id: str):
+        service = SimulatorService()
+        result = await service.snapshot_batch_zipper(batch_id)
+        if result is None:
+            yield rx.toast.error("No snapshots in collection")
+            return
+
+        filename, content = result
+        yield rx.download(data=content, filename=filename)
+
     def open_modal(self, batch_id: str):
         for col in self.collections:
             if col.batch_id == batch_id:
