@@ -211,6 +211,21 @@ class SnapshotsState(rx.State):
         filename, content = result
         yield rx.download(data=content, filename=filename)
 
+    @rx.event
+    async def delete_batch_snapshots(self, batch_id: str):
+        service = SimulatorService()
+        try:
+            deleted = await service.snapshot_batch_deleter(batch_id)
+            if not deleted:
+                yield rx.toast.error("No snapshots found for batch")
+                return
+            yield rx.toast.success(f"Batch {batch_id} eliminado")
+            if self._current_constants_name:
+                self.collections = await service.snapshot_lister(self._current_constants_name)
+                self.snapshots = self.collections[-1] if self.collections else None
+        except Exception as e:
+            yield rx.toast.error(f"Error al eliminar: {e}")
+
     def open_modal(self, batch_id: str):
         for col in self.collections:
             if col.batch_id == batch_id:

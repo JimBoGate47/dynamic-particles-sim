@@ -25,6 +25,12 @@ _PLAY_BUTTONS = [
         "color_scheme": "purple",
         "on_click": lambda row: lambda: SnapshotsState.download_batch_snapshots(row.batch_id),
     },
+    {
+        "icon": "trash",
+        "tooltip": "Borrar batch",
+        "color_scheme": "red",
+        "on_click": lambda row: lambda: SnapshotsState.delete_batch_snapshots(row.batch_id),
+    },
 ]
 
 

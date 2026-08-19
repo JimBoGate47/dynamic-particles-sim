@@ -32,6 +32,10 @@ class SnapshotRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def delete_by_batch_id(self, batch_id: str) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
     async def persist(self, snapshot: Snapshot):
         raise NotImplementedError
 

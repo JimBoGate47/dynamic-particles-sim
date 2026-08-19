@@ -13,6 +13,7 @@ from src.common.domain.filters.snapshot import SnapshotsFilter
 from src.common.infrastructure.repositories.constants import ORMConstantsRepository
 from src.common.infrastructure.repositories.snapshot import ORMSnapshotRepository
 from src.simulator.applitacion.use_cases.particle_system_2d_builder import ParticleSystem2DBuilder
+from src.simulator.applitacion.use_cases.snapshot_batch_deleter import SnapshotsBatchDeleter
 from src.simulator.applitacion.use_cases.snapshot_batch_zipper import SnapshotsBatchZipper
 from src.simulator.applitacion.use_cases.snapshot_builder import SnapshotBuilder
 from src.simulator.applitacion.use_cases.snapshot_finder import SnapshotFinderById
@@ -39,6 +40,10 @@ class ListSnapshotsRequest(BaseModel):
 
 
 class SnapshotBatchZipRequest(BaseModel):
+    batch_id: str
+
+
+class DeleteSnapshotBatchRequest(BaseModel):
     batch_id: str
 
 
@@ -127,6 +132,18 @@ async def snapshot_batch_zip(req: SnapshotBatchZipRequest) -> dict | None:
         return {
             "filename": zip_file.filename,
             "content": base64.b64encode(zip_file.content).decode("ascii"),
+        }
+
+
+async def delete_snapshot_batch(req: DeleteSnapshotBatchRequest) -> dict:
+    async with db_connection():
+        deleted = await SnapshotsBatchDeleter(
+            batch_id=req.batch_id,
+            snapshot_repository=ORMSnapshotRepository(),
+        ).execute()
+        return {
+            "batch_id": req.batch_id,
+            "deleted": deleted,
         }
 
 

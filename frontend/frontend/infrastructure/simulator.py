@@ -13,12 +13,14 @@ from src.simulator.presentation.constants import (
 )
 from src.simulator.presentation.snapshots import (
     CreateSnapshotRequest,
+    DeleteSnapshotBatchRequest,
     GetSnapshotRequest,
     ListSnapshotsRequest,
     RunSimulationRequest,
     RunSimulationWithGravityRequest,
     SnapshotBatchZipRequest,
     create_snapshot,
+    delete_snapshot_batch,
     get_snapshot,
     list_snapshots,
     run_simulation,
@@ -56,6 +58,11 @@ class SimulatorService:
         if response is None:
             return None
         return response["filename"], base64.b64decode(response["content"])
+
+    async def snapshot_batch_deleter(self, batch_id: str) -> bool:
+        logger.info("Deleting snapshots for batch {}", batch_id)
+        response = await delete_snapshot_batch(DeleteSnapshotBatchRequest(batch_id=batch_id))
+        return bool(response["deleted"])
 
     async def snapshot_creator(self, data: dict) -> Snapshot:
         logger.info("Creating snapshot with step={}", data.get("step"))

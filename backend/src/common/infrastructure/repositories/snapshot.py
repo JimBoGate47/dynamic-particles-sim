@@ -71,6 +71,12 @@ class ORMSnapshotRepository(SnapshotRepository):
             SnapshotORM.constants.id == PydanticObjectId(_id),
         ).delete()
 
+    async def delete_by_batch_id(self, batch_id: str) -> bool:
+        result = await SnapshotORM.find(
+            SnapshotORM.batch_id == batch_id,
+        ).delete()
+        return result.deleted_count > 0
+
     async def find_particles(self):
         snapshots = await SnapshotORM.find(fetch_links=True).to_list()
         return [
