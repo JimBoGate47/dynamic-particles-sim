@@ -40,6 +40,8 @@ class ConstantsState(rx.State):
     selected_row: Constants | None = None
     show_modal: bool = False
     show_new_modal: bool = False
+    show_confirm_delete: bool = False
+    confirm_delete_id: str = ""
     new_constants_raw: str = ""
 
     def set_new_constants_raw(self, new_value: str):
@@ -93,6 +95,33 @@ class ConstantsState(rx.State):
         self.rows.append(created)
         self.close_new_modal()
         yield rx.toast.success(f"Constants '{created.name}' creadas")
+
+    @rx.event
+    async def delete_constants(self, row_id: str):
+        service = SimulatorService()
+        try:
+            deleted = await service.constants_deleter(row_id)
+            if not deleted:
+                yield rx.toast.error("No se encontraron las constants")
+                return
+            self.rows = await service.constants_finder()
+            yield rx.toast.success("Constants eliminadas")
+        except Exception as e:
+            yield rx.toast.error(f"Error al eliminar: {e}")
+
+    def open_delete_confirm(self, row_id: str):
+        self.confirm_delete_id = row_id
+        self.show_confirm_delete = True
+
+    def close_delete_confirm(self):
+        self.show_confirm_delete = False
+
+    @rx.event
+    async def confirm_delete_constants(self):
+        row_id = self.confirm_delete_id
+        self.show_confirm_delete = False
+        async for event in self.delete_constants(row_id):
+            yield event
 
     @rx.var(cache=True)
     def selected_json(self) -> str:

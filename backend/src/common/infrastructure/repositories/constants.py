@@ -27,6 +27,14 @@ class ORMConstantsRepository(ConstantsRepository):
             return None
         return build_constants(orm_instance)
 
+    async def delete_by_id(self, _id: ObjectId) -> bool:
+        result = await ConstantsORM.find_one(ConstantsORM.id == _id).delete()
+        return result.deleted_count > 0
+
+    async def delete_by_name(self, name: str) -> bool:
+        result = await ConstantsORM.find_one(ConstantsORM.name == name).delete()
+        return result.deleted_count > 0
+
     async def persist(self, constant: Constants) -> Constants:
         constants = ConstantsORM(
             name=constant.name,

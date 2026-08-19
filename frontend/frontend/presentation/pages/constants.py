@@ -1,5 +1,6 @@
 import reflex as rx
 
+from frontend.components.confirm_dialog import confirm_dialog
 from frontend.components.data_table import data_table
 from frontend.components.json_modal import json_modal
 from frontend.states.constants_state import ConstantsState, COLUMNS
@@ -11,6 +12,12 @@ _ACTION_BUTTONS = [
         "tooltip": "Ver detalle",
         "color_scheme": "blue",
         "on_click": lambda row: SnapshotsState.load_current_snapshot(row.name, row.id),
+    },
+    {
+        "icon": "trash",
+        "tooltip": "Borrar constants",
+        "color_scheme": "red",
+        "on_click": lambda row: ConstantsState.open_delete_confirm(row.id),
     },
 ]
 
@@ -101,6 +108,17 @@ def constants() -> rx.Component:
                 on_close=ConstantsState.close_modal,
             ),
             _new_modal(),
+            confirm_dialog(
+                is_open=ConstantsState.show_confirm_delete,
+                title="Borrar constants",
+                description=(
+                    "Se eliminarán las constants y todos sus snapshots relacionados. "
+                    "¿Deseas continuar?"
+                ),
+                confirm_label="Borrar",
+                on_confirm=ConstantsState.confirm_delete_constants,
+                on_cancel=ConstantsState.close_delete_confirm,
+            ),
             width="100%",
             spacing="4",
             padding_y="2rem",

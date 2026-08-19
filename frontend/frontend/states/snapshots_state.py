@@ -91,6 +91,8 @@ class SnapshotsState(rx.State):
     show_play_modal: bool = False
     show_json_modal: bool = False
     show_new_modal: bool = False
+    show_confirm_delete_batch: bool = False
+    confirm_delete_batch_id: str = ""
     selected_row: SnapshotsCollection | None = None
     slider_value: int = 0
     new_snapshot_raw: str = ""
@@ -225,6 +227,20 @@ class SnapshotsState(rx.State):
                 self.snapshots = self.collections[-1] if self.collections else None
         except Exception as e:
             yield rx.toast.error(f"Error al eliminar: {e}")
+
+    def open_delete_batch_confirm(self, batch_id: str):
+        self.confirm_delete_batch_id = batch_id
+        self.show_confirm_delete_batch = True
+
+    def close_delete_batch_confirm(self):
+        self.show_confirm_delete_batch = False
+
+    @rx.event
+    async def confirm_delete_batch(self):
+        batch_id = self.confirm_delete_batch_id
+        self.show_confirm_delete_batch = False
+        async for event in self.delete_batch_snapshots(batch_id):
+            yield event
 
     def open_modal(self, batch_id: str):
         for col in self.collections:

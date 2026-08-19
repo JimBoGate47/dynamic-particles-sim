@@ -1,5 +1,6 @@
 import reflex as rx
 
+from frontend.components.confirm_dialog import confirm_dialog
 from frontend.components.data_table import data_table
 from frontend.components.dynamic_plotly import plotly_modal
 from frontend.components.gravity_config import gravity_config_input
@@ -29,7 +30,7 @@ _PLAY_BUTTONS = [
         "icon": "trash",
         "tooltip": "Borrar batch",
         "color_scheme": "red",
-        "on_click": lambda row: lambda: SnapshotsState.delete_batch_snapshots(row.batch_id),
+        "on_click": lambda row: SnapshotsState.open_delete_batch_confirm(row.batch_id),
     },
 ]
 
@@ -188,6 +189,17 @@ def snapshots() -> rx.Component:
                 on_close=SnapshotsState.close_modal,
             ),
             _new_modal(),
+            confirm_dialog(
+                is_open=SnapshotsState.show_confirm_delete_batch,
+                title="Borrar batch",
+                description=(
+                    "Se eliminarán todos los snapshots de este batch. "
+                    "¿Deseas continuar?"
+                ),
+                confirm_label="Borrar",
+                on_confirm=SnapshotsState.confirm_delete_batch,
+                on_cancel=SnapshotsState.close_delete_batch_confirm,
+            ),
             width="100%",
             spacing="4",
             padding_y="2rem",

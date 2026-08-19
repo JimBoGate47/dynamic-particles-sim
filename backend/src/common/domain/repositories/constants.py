@@ -20,5 +20,13 @@ class ConstantsRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def delete_by_id(self, _id: ObjectId) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def delete_by_name(self, name: str) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
     async def persist(self, constant: Constants) -> Constants:
         raise NotImplementedError

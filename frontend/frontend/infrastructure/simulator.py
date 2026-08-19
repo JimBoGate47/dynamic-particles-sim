@@ -8,7 +8,9 @@ from frontend.domain.types.gravity import GravityConfig
 from frontend.domain.types.snapshots import Snapshot, SnapshotsCollection
 from src.simulator.presentation.constants import (
     CreateConstantsRequest,
+    DeleteConstantsRequest,
     create_constants,
+    delete_constants,
     find_constants,
 )
 from src.simulator.presentation.snapshots import (
@@ -109,3 +111,8 @@ class SimulatorService:
         logger.info("Creating constants with name={}", data.get("name"))
         response = await create_constants(CreateConstantsRequest(**data))
         return Constants.model_validate(response)
+
+    async def constants_deleter(self, constants_id: str) -> bool:
+        logger.info("Deleting constants with id={}", constants_id)
+        response = await delete_constants(DeleteConstantsRequest(constants_id=constants_id))
+        return bool(response["deleted"])
