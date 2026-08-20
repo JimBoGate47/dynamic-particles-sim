@@ -12,6 +12,7 @@ from src.simulator.infrastructure.interaction import (
     GravityInteractionDecorator,
     HardWallEventDrivenInteractionDecorator,
     HarmonicWallInteractionDecorator,
+    PairWCAInteractionDecorator,
     WCAWallInteractionDecorator,
     build_interactions,
 )
@@ -149,15 +150,45 @@ class TestWCAWall:
         assert torch.allclose(acceleration[1], torch.tensor(0.0), atol=1e-6)
 
     def test_confines_charged_particles_within_radius(self):
-        # Arrange
+        # Arrange: pared WCA rígida (epsilon=150*k) sin cap de fuerza.
+        # se requiere dt pequeño para que el escalón cumpla omega*dt < 2.
         positions = _ring_positions(radius=3.0)
         velocities = _radial_unit_velocity(positions, speed=0.3)
         interactions = build_interactions(wall="wca")
+        sim_props = _sim_props(dt=0.005)
 
         # Act
-        particle_system = _run(steps=300, positions=positions, velocities=velocities, interactions=interactions)
+        particle_system = _run(steps=300, positions=positions, velocities=velocities, interactions=interactions, sim_props=sim_props)
 
         # Assert
+        assert torch.isfinite(particle_system.pos).all()
+        assert _max_radius(particle_system.pos) <= R_CONFINEMENT + 1e-2
+
+    def test_rescues_escaped_particle_inward(self):
+        # Arrange: partícula fuera de la cáscara (r > R + d_cut) alejándose
+        positions = torch.tensor([[7.0, 0.0]])
+        velocity = torch.tensor([[1.0, 0.0]])
+        decorator = WCAWallInteractionDecorator(NoopInteraction())
+
+        # Act
+        response = decorator.compute_aceleration(_query(positions, velocity))
+
+        # Assert: fuerza radial hacia adentro y finita
+        assert torch.isfinite(response.acceleration).all()
+        assert response.acceleration[0, 0] < 0.0
+        assert torch.allclose(response.acceleration[0, 1], torch.tensor(0.0), atol=1e-6)
+
+    def test_pulls_escaped_particle_back_during_integration(self):
+        # Arrange: arranque fuera de la pared con velocidad saliente
+        positions = torch.tensor([[10.0, 0.0]])
+        velocities = torch.tensor([[1.0, 0.0]])
+        interactions = build_interactions(wall="wca")
+        sim_props = _sim_props(dt=0.005)
+
+        # Act
+        particle_system = _run(steps=300, positions=positions, velocities=velocities, interactions=interactions, sim_props=sim_props)
+
+        # Assert: finita y de vuelta dentro del disco
         assert torch.isfinite(particle_system.pos).all()
         assert _max_radius(particle_system.pos) <= R_CONFINEMENT + 1e-2
 
@@ -248,6 +279,67 @@ class TestHardWallEventDriven:
         # Assert
         assert torch.isfinite(particle_system.pos).all()
         assert _max_radius(particle_system.pos) <= R_CONFINEMENT + 1e-2
+
+
+class TestPairWCA:
+    def test_no_force_for_particles_beyond_cutoff(self):
+        # Arrange
+        positions = torch.tensor([[10.0, 0.0], [-10.0, 0.0]])
+        velocity = torch.zeros(2, 2)
+        decorator = PairWCAInteractionDecorator(NoopInteraction())
+
+        # Act
+        response = decorator.compute_aceleration(_query(positions, velocity))
+
+        # Assert
+        assert torch.allclose(
+            response.acceleration, torch.zeros_like(response.acceleration), atol=1e-6
+        )
+
+    def test_repels_overlapping_particles(self):
+        # Arrange: dos partículas casi en el mismo punto, separadas en x
+        positions = torch.tensor([[0.0, 0.0], [0.1, 0.0]])
+        velocity = torch.zeros(2, 2)
+        decorator = PairWCAInteractionDecorator(NoopInteraction())
+
+        # Act
+        response = decorator.compute_aceleration(_query(positions, velocity))
+
+        # Assert: se alejan entre sí (a0 hacia -x, a1 hacia +x)
+        assert torch.isfinite(response.acceleration).all()
+        assert response.acceleration[0, 0] < 0.0
+        assert response.acceleration[1, 0] > 0.0
+        assert torch.allclose(response.acceleration[0, 1], torch.tensor(0.0), atol=1e-6)
+
+    def test_single_particle_has_no_self_force(self):
+        # Arrange
+        positions = torch.tensor([[0.0, 0.0]])
+        velocity = torch.zeros(1, 2)
+        decorator = PairWCAInteractionDecorator(NoopInteraction())
+
+        # Act
+        response = decorator.compute_aceleration(_query(positions, velocity))
+
+        # Assert
+        assert torch.allclose(
+            response.acceleration, torch.zeros_like(response.acceleration), atol=1e-6
+        )
+
+    def test_keeps_particles_apart_during_integration(self):
+        # Arrange: dos partículas superpuestas en el origen, sin pared
+        positions = torch.tensor([[0.0, 0.0], [0.01, 0.0]])
+        velocities = torch.zeros(2, 2)
+        interactions = PairWCAInteractionDecorator(NoopInteraction())
+
+        # Act
+        particle_system = _run(steps=500, positions=positions, velocities=velocities, interactions=interactions)
+
+        # Assert: se separan, siguen finitas y no se vuelven a superponer
+        assert torch.isfinite(particle_system.pos).all()
+        separation = torch.linalg.norm(
+            particle_system.pos[1] - particle_system.pos[0],
+        ).item()
+        assert separation > 0.1
 
 
 class TestGravityInteractionDecorator:
