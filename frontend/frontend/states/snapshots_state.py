@@ -99,7 +99,7 @@ class SnapshotsState(rx.State):
     add_gravity: bool = False
     gravity_config: GravityConfig = GravityConfig()
     stabilization_steps: int = 506
-    confinement: str = ConfinementType.HARMONIC.value
+    confinement: str = ConfinementType.WCA.value
     _current_constants_id: str = ""
     _current_constants_name: str = ""
 

@@ -68,7 +68,7 @@ class RunSimulationRequest(BaseModel):
     snapshot_id: str
     n_steps: int = 506
     save_at_mod: int = 100
-    wall: ConfinementType = ConfinementType.HARMONIC
+    wall: ConfinementType = ConfinementType.WCA
     metrics_enabled: bool = True
     metrics_mode: MetricsSamplingMode = MetricsSamplingMode.FINAL_ONLY
     metrics_every_n: int = 1
@@ -80,7 +80,7 @@ class RunSimulationWithGravityRequest(BaseModel):
     stabilization_steps: int = 506
     gravity_config: GravityConfig = GravityConfig()
     save_at_mod: int = 100
-    wall: ConfinementType = ConfinementType.HARMONIC
+    wall: ConfinementType = ConfinementType.WCA
     metrics_enabled: bool = True
     metrics_mode: MetricsSamplingMode = MetricsSamplingMode.FINAL_ONLY
     metrics_every_n: int = 1
