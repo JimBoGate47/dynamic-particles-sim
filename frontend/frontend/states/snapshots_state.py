@@ -99,6 +99,7 @@ class SnapshotsState(rx.State):
     add_gravity: bool = False
     gravity_config: GravityConfig = GravityConfig()
     stabilization_steps: int = 506
+    save_every_stabilization_steps: int = 100
     confinement: str = ConfinementType.WCA.value
     _current_constants_id: str = ""
     _current_constants_name: str = ""
@@ -130,6 +131,12 @@ class SnapshotsState(rx.State):
     def set_stabilization_steps(self, value: int | str):
         try:
             self.stabilization_steps = max(1, int(value))
+        except (TypeError, ValueError):
+            pass
+
+    def set_save_every_stabilization_steps(self, value: int | str):
+        try:
+            self.save_every_stabilization_steps = max(1, int(value))
         except (TypeError, ValueError):
             pass
 
@@ -174,6 +181,7 @@ class SnapshotsState(rx.State):
                 snapshots = await service.simulation_runner(
                     snapshot_id=snapshot.id,
                     n_steps=self.stabilization_steps,
+                    save_at_mod=self.save_every_stabilization_steps,
                     wall=wall,
                 )
             yield rx.toast.success(f"Simulación completada: {len(snapshots)} snapshots")

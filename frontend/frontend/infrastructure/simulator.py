@@ -91,12 +91,14 @@ class SimulatorService:
         self,
         snapshot_id: str,
         stabilization_steps: int = 506,
+        save_at_mod: int = 100,
         gravity_config: GravityConfig | None = None,
         wall: ConfinementType = ConfinementType.HARMONIC,
     ) -> list[Snapshot]:
         request = RunSimulationWithGravityRequest(
             snapshot_id=snapshot_id,
             stabilization_steps=stabilization_steps,
+            save_at_mod=save_at_mod,
             wall=wall,
         )
 

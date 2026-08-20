@@ -165,6 +165,19 @@ def snapshots() -> rx.Component:
                     on_change=SnapshotsState.set_stabilization_steps,
                     width="110px",
                 ),
+                rx.text(
+                    "Save every stab steps",
+                    color="#94a3b8",
+                    font_size="0.875rem",
+                ),
+                rx.input(
+                    type="number",
+                    step="1",
+                    min="1",
+                    value=SnapshotsState.save_every_stabilization_steps,
+                    on_change=SnapshotsState.set_save_every_stabilization_steps,
+                    width="110px",
+                ),
                 spacing="2",
             ),
             data_table(
